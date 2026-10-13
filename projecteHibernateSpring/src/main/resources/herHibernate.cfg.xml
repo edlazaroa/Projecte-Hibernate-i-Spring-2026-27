@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+	"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+	"https://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+		<!-- BD diferent de la de la sessió 1: les dues tenen una taula "videojoc" i,
+		     amb "create", una esborraria l'altra (o fallaria per la clau forana de videojoc_genere) -->
+		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/videojocs_herencia?createDatabaseIfNotExist=true</property>
+		<property name="hibernate.connection.username">root</property>
+		<property name="hibernate.connection.password">super3</property>
+
+		<!-- "create": avui canviarem d'estratègia d'herència diverses vegades i volem
+		     que les taules es tornin a crear de zero cada cop -->
+		<property name="hibernate.hbm2ddl.auto">create</property>
+
+		<!-- Avui l'SQL és el protagonista: compareu-lo entre estratègies -->
+		<property name="hibernate.show_sql">true</property>
+		<property name="hibernate.format_sql">true</property>
+		<!-- Colors ANSI. Si a la consola veieu símbols com [34m, activeu
+		     Window > Preferences > Run/Debug > Console > ANSI Support, o poseu-ho a false -->
+		<property name="hibernate.highlight_sql">true</property>
+
+		<!-- Cal declarar TOTES les entitats de la jerarquia, també l'arrel abstracta.
+		     Els enums (Pegi, EstilCombat) no hi van. -->
+		<mapping class="herencia.Videojoc"/>
+		<mapping class="herencia.VideojocRPG"/>
+		<mapping class="herencia.VideojocAccio"/>
+	</session-factory>
+</hibernate-configuration>

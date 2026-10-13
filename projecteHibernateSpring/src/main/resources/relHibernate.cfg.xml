@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+	<session-factory>
+		<!-- BD nova per no xocar amb les taules de les sessions 1 i 2 -->
+		<property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/videojocs_relacions?createDatabaseIfNotExist=true</property>
+		<property name="hibernate.connection.username">root</property>
+		<property name="hibernate.connection.password">super3</property>
+
+		<!-- create: cada execució comença amb les taules buides -->
+		<property name="hibernate.hbm2ddl.auto">create</property>
+
+		<!-- Avui l'SQL és el protagonista: comptarem les SELECT -->
+		<property name="hibernate.show_sql">true</property>
+		<property name="hibernate.format_sql">true</property>
+		<property name="hibernate.highlight_sql">true</property>
+
+		<!-- Estadístiques: el Main compta quantes consultes llança cada demo (N+1 vs JOIN FETCH) -->
+		<property name="hibernate.generate_statistics">true</property>
+		<!-- ...però sense el resum que Hibernate escriu en tancar cada sessió (massa soroll) -->
+		<property name="hibernate.session.events.log">false</property>
+
+		<!-- Totes les entitats -->
+		<mapping class="relacions.Estudi"/>
+		<mapping class="relacions.Videojoc"/>
+		<mapping class="relacions.FitxaTecnica"/>
+		<mapping class="relacions.Categoria"/>
+		<mapping class="relacions.Plataforma"/>
+		<mapping class="relacions.Llancament"/>
+	</session-factory>
+</hibernate-configuration>
