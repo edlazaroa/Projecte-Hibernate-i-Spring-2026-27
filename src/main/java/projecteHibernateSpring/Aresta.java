@@ -13,7 +13,7 @@ public class Aresta {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Integer aresta_id;
 	
 	@Column(name = "codi", nullable=false)
 	private Integer codi;
