@@ -98,4 +98,7 @@ public class Jugador {
 	
 	@OneToMany(mappedBy="Construccio")
 	private List<Construccio> construccions = new ArrayList<>();
+	
+	@OneToMany(mappedBy="RecursJugador")
+	private List<RecursJugador> recursos = new ArrayList<>();
 }
