@@ -67,5 +67,9 @@ public class CartaDesenvolupament {
 	
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "partida_id", nullable = false)
-	private Partida partida;	
+	private Partida partida;
+	
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
+	@JoinColumn(name = "jugador_id", nullable = false)
+	private Jugador jugador;
 }
