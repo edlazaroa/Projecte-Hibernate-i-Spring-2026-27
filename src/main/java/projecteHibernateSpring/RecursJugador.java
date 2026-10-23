@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -19,8 +21,6 @@ public class RecursJugador {
 	private Integer recurs_jugador_id;
 	@Column(name = "id", nullable = false)
 	private Integer quantitat;
-	@Column(name = "jugador_id", nullable = false, unique = true)
-	private Jugador jugador;
 	public RecursJugador() {
 
 	}
@@ -56,6 +56,8 @@ public class RecursJugador {
 	@Column(name = "tipus", nullable = false)
 	private TipusRecurs tipus;	
 	
-	
+	@ManyToOne
+	@JoinColumn(name = "jugador_id")
+	private Jugador jugador;
 	
 }
