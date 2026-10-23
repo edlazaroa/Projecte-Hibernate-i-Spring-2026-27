@@ -1,4 +1,4 @@
-package projecteHibernateSpring;
+xpackage projecteHibernateSpring;
 
 import java.sql.Date;
 import java.util.ArrayList;
