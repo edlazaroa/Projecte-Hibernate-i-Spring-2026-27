@@ -2,6 +2,8 @@ package projecteHibernateSpring;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,8 +19,6 @@ public class CartaDesenvolupament {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "carta_desenvolupament_id", nullable = false)
 	private Integer carta_desenvolupament_id;
-	@Column(name = "tipus", nullable = false)
-	private TipusCarta tipus;
 	@Column(name = "usada", nullable = false)
 	private boolean usada;
 	@Column(name = "rondaCompra", nullable = false)
@@ -72,4 +72,8 @@ public class CartaDesenvolupament {
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "jugador_id", nullable = false)
 	private Jugador jugador;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "tipus", nullable = false)
+	private TipusCarta tipus;	
 }

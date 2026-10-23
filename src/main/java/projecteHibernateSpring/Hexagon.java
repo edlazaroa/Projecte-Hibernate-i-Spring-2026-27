@@ -1,13 +1,19 @@
 package projecteHibernateSpring;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -34,8 +40,6 @@ public class Hexagon {
 	public Hexagon() {
 
 	}
-
-	
 
 	public Hexagon(Integer hexagon_id, Integer codi, TipusTerreny terreny, Integer numero, Integer q, Integer r,
 			Integer hexagon_partida_id, Partida partida) {
@@ -140,4 +144,14 @@ public class Hexagon {
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "partida_id", nullable = false)
 	private Partida partida;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "tipus", nullable = false)
+	private TipusTerreny tipus;	
+	
+	@OneToMany(mappedBy="HexagonVertex")
+	private List<Hexagon> posicions = new ArrayList<>();
+	
+	
+	
 }
