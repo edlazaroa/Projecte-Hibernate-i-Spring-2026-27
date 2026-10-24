@@ -6,8 +6,24 @@ public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida
 
 	@Override
 	public int iniciarPartida(List<String> nomsJugadors) {
-		// TODO Auto-generated method stub
-		return 0;
+	        if (nomsJugadors == null || nomsJugadors.size() < 2 || nomsJugadors.size() > 4) {
+	            throw new IllegalArgumentException("Hi ha d'haver entre 2 i 4 jugadors");
+	        }
+
+	        Transaction tx = null;
+	        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+	            tx = session.beginTransaction();
+
+	            // 1. Partida
+	            partida partida = new partida();
+	            partida.setEstat(EstatPartida.PREPARACIO);
+	            partida.setDataInici(new Date());
+	            partida.setRonda(1);
+	            partida.setPuntsPerGuanyar(10);
+	            partida.setDausTirats(false);
+	            partida.setLladrePendent(false);
+	            session.persist(partida);
+
 	}
 
 	@Override
