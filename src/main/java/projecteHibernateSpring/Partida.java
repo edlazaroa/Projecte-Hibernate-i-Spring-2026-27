@@ -130,7 +130,7 @@ public class Partida {
 	private List<Aresta> arestes = new ArrayList<>();
 	
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "actiu_id")
+	@JoinColumn(name = "giu_id")
 	private Jugador actiu;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
