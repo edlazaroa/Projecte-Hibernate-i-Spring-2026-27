@@ -11,7 +11,7 @@ import com.mysql.cj.Session;
 
 import jakarta.transaction.Transaction;
 
-public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida{
+public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida{
 
 	@Override
 	public int iniciarPartida(List<String> nomsJugadors) {
@@ -24,7 +24,7 @@ public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida
             tx = session.beginTransaction();
 
             // 1. Partida
-            Partida partida = new partida();
+            Partida partida = new Partida();
             partida.setEstat(EstatPartida.PREPARACIO);
             partida.setDataInici(new Date());
             partida.setRonda(1);
@@ -490,4 +490,16 @@ public String mostrarTauler(int idPartida) {
 	}
 	// AQUI IRAN TODOS LOS METODOS DE IPartida IMPLEMENTADOS
 	// Implement IJugador y Extenteinde Gen
+
+	@Override
+	public String mostrarPartida() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String mostrarTauler() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
