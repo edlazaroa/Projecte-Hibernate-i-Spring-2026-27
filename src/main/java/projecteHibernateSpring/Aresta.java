@@ -42,6 +42,10 @@ public class Aresta {
 		this.codi = codi;
 	}
 	
+	public Carretera getCarretera() {
+	    return carretera;
+	}
+	
 	@ManyToOne
     @JoinColumn(name = "vertex_a_id")	    
 	private Vertex vertexA;
@@ -50,7 +54,7 @@ public class Aresta {
     @JoinColumn(name = "vertex_b_id")
     private Vertex vertexB;
     
-    @OneToOne(mappedBy = "Aresta")
+    @OneToOne(mappedBy = "aresta")
     private Carretera carretera;
 	
 }

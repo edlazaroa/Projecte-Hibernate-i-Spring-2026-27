@@ -31,6 +31,14 @@ public abstract class Construccio {
 		return construccio_id;
 	}
 	
+	public Jugador getJugador() {
+	    return jugador;
+	}
+
+	public void setJugador(Jugador jugador) {
+	    this.jugador = jugador;
+	}
+	
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "jugador_id", nullable = false)
 	private Jugador jugador;

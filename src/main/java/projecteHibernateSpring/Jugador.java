@@ -79,6 +79,14 @@ public class Jugador {
 		this.cavallersJugats = cavallersJugats;
 	}
 	
+	public Partida getPartida() {
+	    return partida;
+	}
+	
+	public void setPartida(Partida partida) {
+	    this.partida = partida;
+	}
+	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "partida_id")
 	private Partida partida;

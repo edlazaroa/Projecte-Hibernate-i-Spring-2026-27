@@ -48,6 +48,10 @@ public class Vertex {
 		this.codi = codi;
 	}
 	
+	public Assentament getAssentament() {
+	    return assentament;
+	}
+	
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "partida_id", nullable = false)
 	private Partida partida;
@@ -62,7 +66,7 @@ public class Vertex {
 	@OneToMany(mappedBy = "vertexB")
 	private List<Aresta> arestesB = new ArrayList<>();
 	
-	@OneToOne(mappedBy = "Vertex")
+	@OneToOne(mappedBy = "vertex")
 	private Assentament assentament;
 	
 	

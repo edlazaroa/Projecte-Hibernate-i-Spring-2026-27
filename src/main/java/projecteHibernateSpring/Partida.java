@@ -112,12 +112,20 @@ public class Partida {
 
 	public void setLladrePendent(boolean lladrePendent) {
 		this.lladrePendent = lladrePendent;
-	}	
+	}
+	
+	public Jugador getActiu() {
+	    return actiu;
+	}
+
+	public void setActiu(Jugador actiu) {
+	    this.actiu = actiu;
+	}
 	
 	@OneToMany(mappedBy="Hexagon")
 	private List<Hexagon> hexagons = new ArrayList<>();
 	
-	@OneToMany(mappedBy="Jugador")
+	@OneToMany(mappedBy="partida")
 	private List<Jugador> jugadors = new ArrayList<>();
 	
 	@OneToMany(mappedBy="CartaDesenvolupament")
