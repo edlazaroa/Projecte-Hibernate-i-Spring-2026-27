@@ -409,7 +409,6 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 	
 	        partida.setActiu(jugadorSeguent);
 	
-	        // Preparar el turno siguiente
 	        partida.setDausTirats(false);
 	        partida.setLladrePendent(false);
 	
@@ -424,12 +423,27 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 	    }
 	}
 
-
-
 	@Override
 	public String vertexsDisponibles(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
+		Session session = sessionFactory.getCurrentSession();
+		try {
+			session.beginTransaction();
+
+			Jugador jugador = session.get(Jugador.class, idJugador);
+
+			if (jugador == null) {
+				session.getTransaction().commit();
+				return "El jugador no existeix.";
+			}
+
+			List<Vertex> vertexsDisponibles = session.createQuery("select distinct v from Vertex v where not exists(select a from Assentament a where a.vertex = v) and not exists (select a2 from Assentament a2 where a2.vertex in (select v2 from Vertex v2 join v2.arestes ar2 join ar2.vertexs v2 where v2 = v)) and exists (select c from Carretera c join c.aresta ar where c.jugador.jugador_id = :idJugador and (ar.vertex1 = v or ar.vertex2 = v))",Vertex.class).setParameter("idJugador", idJugador).getResultList();
+			session.getTransaction().commit();
+			return vertexsDisponibles(idJugador);
+
+		} catch (RuntimeException e) {
+			handleException(session, e);
+			return "Error al consultar els vertexs disponibles.";
+		}
 	}
 
 	@Override
