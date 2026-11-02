@@ -1,17 +1,17 @@
 package projecteHibernateSpring;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import java.util.LinkedHashMap;
 
-import com.mysql.cj.Session;
-
-import jakarta.transaction.Transaction;
-
-public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida{
+public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida{
 
 	@Override
 	public int iniciarPartida(List<String> nomsJugadors) {
@@ -92,7 +92,7 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
             h.setTerreny(terrenys.get(i));
             if (terrenys.get(i) == TipusTerreny.DESERT) {
                 h.setNumero(null);
-                partida.setLladre(h);
+                (h);
             } else {
                 h.setNumero(numeros.get(idxNumero++));
             }
@@ -200,7 +200,7 @@ public String mostrarTauler(int idPartida) {
         for (Hexagon h : hexagons) {
             sb.append("Hexàgon ").append(h.getCodi()).append(": ").append(h.getTerreny());
             sb.append(" | número: ").append(h.getNumero() != null ? h.getNumero() : "-");
-            if (h.getId().equals(idLladre)) {
+            if (h.getCodi().equals(idLladre)) {
                 sb.append(" | LLADRE");
             }
             sb.append("\n");
@@ -220,8 +220,8 @@ public String mostrarTauler(int idPartida) {
                 String tipus = (a instanceof Ciutat) ? "Ciutat" : "Poblat";
                 sb.append("   ").append(tipus)
                   .append(" al vèrtex ").append(a.getVertex().getCodi())
-                  .append(" de ").append(a.getPropietari().getNom())
-                  .append(" (").append(a.getPropietari().getColor()).append(")\n");
+                  .append(" de ").append(a.getJugador().getNom())
+                  .append(" (").append(a.getJugador().getColor()).append(")\n");
             }
         }
         return sb.toString();
@@ -412,7 +412,7 @@ public String mostrarTauler(int idPartida) {
 			for (Jugador j : jugadors) {
 				String punts = calcularPunts(j.getId());
 				int puntsTotals = Integer.parseInt(punts);
-				if (puntsTotals >= 100) {
+				if (puntsTotals >= 10) {
 					j.setGuanyador = true; // Tinc que veure la variable que determina el guanyador
 					partida.setEstat(EstatPartida.FINALITZADA);
 					System.out.println("El jugador " + j.getNom() + " Es el guanyador!! ");
@@ -420,7 +420,31 @@ public String mostrarTauler(int idPartida) {
 			}
 		}
 	
-	
+	@Override
+	public void exercitMesGran(int idPartida) {
+		Partida partida = session.get(Partida.class, idPartida);
+		List<Jugador> jugadors = new ArrayList<>(partida.getJugadors());
+		Jugador jugadorMesGran;
+		for (Jugador j : jugadors) {
+			if (j.getCavallersJugats() >= 3 && jugadorMesGran.getCavallersJugats() < j.getCavallersJugats()) {
+				jugadorMesGran = j;
+			}
+		}
+		jugadorMesGran.setPunts(jugadorMesGran.getPunts() + 2);
+		System.out.println("El jugador amb l'exercit més gran es: " + jugadorMesGran.getNom());
+	}
+
+	@Override
+	public String mostrarPartida() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String mostrarTauler() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
 	public String mostrarRecursos(int idJugador) {
@@ -455,7 +479,6 @@ public String mostrarTauler(int idPartida) {
 	@Override
 	public String calcularPunts(int idJugador) {
 		// TODO Auto-generated method stub
-		// TINC QUE FER QUE ES CALCULIN ELS PUNTS
 		return null;
 	}
 
@@ -488,18 +511,5 @@ public String mostrarTauler(int idPartida) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	// AQUI IRAN TODOS LOS METODOS DE IPartida IMPLEMENTADOS
-	// Implement IJugador y Extenteinde Gen
-
-	@Override
-	public String mostrarPartida() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String mostrarTauler() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 }

@@ -8,17 +8,6 @@ import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import ClasePartida.ConstruccionsVertex;
-import ClasePartida.EstatPartida;
-import ClasePartida.Hexagons;
-import ClasePartida.Jugador;
-import ClasePartida.Partida;
-import ClasePartida.RecursJugador;
-import ClasePartida.TipusRecurs;
-import ClasePartida.TipusTerreny;
-import ClasePartida.jugador;
-import ClasePartida.partida;
-import ClasePartida.vertex;
 
 public interface IPartida extends IGenericDao<Partida, Integer>{
 	// Gestió de la partida
