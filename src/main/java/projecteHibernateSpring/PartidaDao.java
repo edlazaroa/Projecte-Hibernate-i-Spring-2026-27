@@ -112,7 +112,7 @@ public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida
 			h.setTerreny(terrenys.get(i));
 			if (terrenys.get(i) == TipusTerreny.DESERT) {
 				h.setNumero(null);
-				partida.setLladre(h); // el lladre comença al desert
+				partida.setLladreId(h); // el lladre comença al desert
 			} else {
 				h.setNumero(numeros.get(idxNumero++));
 			}
@@ -191,7 +191,7 @@ public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida
 			}
 
 			// El lladre és un camp de Partida (no un tipus de jugador)
-			Integer idLladre = (partida.getLladre() != null) ? partida.getLladre().getHexagon_id() : null;
+			Integer idLladre = (partida.getLladreId() != null) ? partida.getLladreId().getHexagon_id() : null;
 
 			List<Hexagon> hexagons = session.createQuery(
 					"FROM Hexagon h WHERE h.partida = :partida ORDER BY h.codi", Hexagon.class)
@@ -293,7 +293,7 @@ public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida
 	private void produir(Session session, Partida partida, int tirada,
 			Map<Integer, Map<TipusRecurs, Integer>> rebuts) {
 
-		int idLladre = (partida.getLladre() != null) ? partida.getLladre().getHexagon_id() : -1;
+		int idLladre = (partida.getLladreId() != null) ? partida.getLladreId().getHexagon_id() : -1;
 
 		List<Hexagon> hexagons = session.createQuery(
 				"FROM Hexagon h WHERE h.partida = :partida AND h.numero = :numero AND h.hexagon_id <> :idLladre",
@@ -394,7 +394,7 @@ public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida
 			if (partida != null && partida.getEstat() != EstatPartida.FINALITZADA) {
 				for (Jugador j : jugadorsDeLaPartida(session, partida)) {
 					if (calcularPunts(session, j) >= partida.getPuntsPerGuanyar()) {
-						partida.setGuanyador(j);
+						partida.setGuanyadorId(j);
 						partida.setEstat(EstatPartida.FINALITZADA);
 						System.out.println("El jugador " + j.getNom() + " és el guanyador!");
 						break;
@@ -525,81 +525,4 @@ public class PartidaDAO extends GenericDao<Partida, Integer> implements IPartida
 		fila.setQuantitat(fila.getQuantitat() + quantitat);
 	}
 
-	@Override
-	public String mostrarPartida() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String mostrarTauler() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String mostrarRecursos(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String construirCarretera(int idJugador, int idAresta) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String construirPoblat(int idJugador, int idVertex) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String millorarACiutat(int idJugador, int idVertex) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String comerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String calcularPunts(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String passarTorn(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String vertexsDisponibles(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String moureLladre(int idJugador, int idHexagon, Integer idJugadorVictima) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String comprarCarta(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String jugarCarta(int idJugador, int idCarta, TipusRecurs recurs) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

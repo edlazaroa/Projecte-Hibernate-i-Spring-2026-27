@@ -37,13 +37,17 @@ public class Partida {
 	private boolean dausTirats;
 	@Column(name = "lladrePendent", nullable = false)
 	private boolean lladrePendent;
+	@Column(name = "lladreId", nullable = false)
+	private Hexagon lladreId;
+	@Column(name = "guanyadorId", nullable = false)
+	private Jugador guanyadorId;
 	
 	public Partida() {
 		
 	}
 
 	public Partida(Integer partida_id, EstatPartida estat, Date dataInici, Integer ronda, Integer ultimaTirada,
-			Integer puntsPerGuanyar, boolean dausTirats, boolean lladrePendent) {
+			Integer puntsPerGuanyar, boolean dausTirats, boolean lladrePendent, Hexagon lladreId, Jugador guanyadorId) {
 		this.partida_id = partida_id;
 		this.estat = estat;
 		this.dataInici = dataInici;
@@ -52,6 +56,8 @@ public class Partida {
 		this.puntsPerGuanyar = puntsPerGuanyar;
 		this.dausTirats = dausTirats;
 		this.lladrePendent = lladrePendent;
+		this.lladreId = lladreId;
+		this.guanyadorId = guanyadorId;
 	}
 
 	public Integer getId() {
@@ -120,6 +126,20 @@ public class Partida {
 
 	public void setActiu(Jugador actiu) {
 	    this.actiu = actiu;
+	}
+	
+	public Hexagon getLladreId() {
+		return lladreId;
+	}
+	public void setLladreId(Hexagon lladreId) {
+		this.lladreId = lladreId;
+	}
+
+	public Jugador getGuanyadorId() {
+		return guanyadorId;
+	}
+	public void setGuanyadorId(Jugador guanyadorId) {
+		this.guanyadorId = guanyadorId;
 	}
 	
 	@OneToMany(mappedBy="Hexagon")
