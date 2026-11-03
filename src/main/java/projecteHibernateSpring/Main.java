@@ -1,7 +1,10 @@
+
 package projecteHibernateSpring;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hibernate.Session;
 
 public class Main {
 
@@ -11,7 +14,6 @@ public class Main {
         JugadorDao jugadorDao = new JugadorDao();
 
         List<String> nomsJugadors = new ArrayList<>();
-
         nomsJugadors.add("Gabriel");
         nomsJugadors.add("Alex");
         nomsJugadors.add("Dennis");
@@ -19,11 +21,8 @@ public class Main {
 
         try {
 
-            System.out.println("--- MÉTODES JUGADOR ---\n");
-
+            // 1. INICIAR PARTIDA
             System.out.println("--- MÉTODES PARTIDA ---\n");
-
-            // 1. Iniciar partida
             System.out.println("1. Iniciar Partida:");
 
             int idPartida = partidaDao.iniciarPartida(nomsJugadors);
@@ -35,7 +34,7 @@ public class Main {
 
             System.out.println("Partida creada con ID: " + idPartida);
 
-            // Obtener jugadores de la partida
+            // 2. OBTENER IDS DE LOS JUGADORES
             List<Integer> idsJugadors = obtenirIdsJugadors(idPartida);
 
             if (idsJugadors.isEmpty()) {
@@ -44,6 +43,7 @@ public class Main {
             }
 
             int idJugador = idsJugadors.get(0);
+
             int idJugadorVictima = idsJugadors.size() > 1
                     ? idsJugadors.get(1) : idJugador;
 
@@ -53,85 +53,75 @@ public class Main {
                 System.out.println("ID jugador: " + id);
             }
 
-            // IDs de ejemplo: deben existir en la base de datos
+            // IDs de prueba
             int idAresta = 1;
             int idVertex = 1;
             int idHexagon = 1;
 
-            // 2. Mostrar partida
-            System.out.println("\n2. Mostrar Partida:");
-            System.out.println(partidaDao.mostrarPartida(idPartida));
+            // 3. MÉTODOS DE JUGADOR
+            System.out.println("\n--- MÉTODES JUGADOR ---\n");
 
-            // 3. Mostrar tablero
-            System.out.println("\n3. Mostrar Tauler:");
-            System.out.println(partidaDao.mostrarTauler(idPartida));
-
-            // 4. Mostrar recursos
-            System.out.println("\n4. Mostrar Recursos:");
+            System.out.println("1. Mostrar recursos:");
             System.out.println(jugadorDao.mostrarRecursos(idJugador));
 
-            // 5. Construir carretera
-            System.out.println("\n5. Construir Carretera:");
+            System.out.println("\n2. Construir carretera:");
             System.out.println(jugadorDao.construirCarretera(
                     idJugador, idAresta));
 
-            // 6. Construir poblado
-            System.out.println("\n6. Construir Poblat:");
+            System.out.println("\n3. Construir poblado:");
             System.out.println(jugadorDao.construirPoblat(
                     idJugador, idVertex));
 
-            // 7. Mejorar a ciudad
-            System.out.println("\n7. Millorar A Ciutat:");
+            System.out.println("\n4. Mejorar a ciudad:");
             System.out.println(jugadorDao.millorarACiutat(
                     idJugador, idVertex));
 
-            // 8. Comercio con la banca
-            System.out.println("\n8. Comerciar Banca:");
+            System.out.println("\n5. Comerciar con la banca:");
             System.out.println(jugadorDao.comerciarBanca(
-                    idJugador, TipusRecurs.FUSTA, TipusRecurs.BLAT));
+                    idJugador,
+                    TipusRecurs.FUSTA,
+                    TipusRecurs.BLAT));
 
-            // 9. Calcular puntos
-            System.out.println("\n9. Calcular Punts:");
+            System.out.println("\n6. Calcular puntos:");
             System.out.println(jugadorDao.calcularPunts(idJugador));
 
-            // 10. Pasar turno
-            System.out.println("\n10. Passar Torn:");
+            System.out.println("\n7. Pasar turno:");
             System.out.println(jugadorDao.passarTorn(idJugador));
 
-            // 11. Vértices disponibles
-            System.out.println("\n11. Vertexs Disponibles:");
+            System.out.println("\n8. Vértices disponibles:");
             System.out.println(jugadorDao.vertexsDisponibles(idJugador));
 
-            // 12. Mover ladrón (pendiente de implementar)
-            System.out.println("\n12. Moure Lladre:");
-            System.out.println("Pendiente de implementar.");
+            // 4. RESTO DE MÉTODOS DE PARTIDA
+            System.out.println("\n--- MÉTODES PARTIDA ---\n");
 
-            // 13. Comprar carta (pendiente de implementar)
-            System.out.println("\n13. Comprar Carta:");
-            System.out.println("Pendiente de implementar.");
+            System.out.println("2. Mostrar Partida:");
+            System.out.println(partidaDao.mostrarPartida(idPartida));
 
-            // 14. Jugar carta (pendiente de implementar)
-            System.out.println("\n14. Jugar Carta:");
-            System.out.println("Pendiente de implementar.");
-
-            // 15. Tirar dados
-            System.out.println("\n15. Tirar Daus:");
-            System.out.println(partidaDao.tirarDaus(idPartida));
-
-            // 16. Comprobar victoria
-            System.out.println("\n16. Comprovar Victoria:");
-            partidaDao.comprovarVictoria(idPartida);
-
-            // 17. Ejército más grande
-            System.out.println("\n17. Exercit Mes Gran:");
-            partidaDao.exercitMesGran(idPartida);
-
-            // 18. Mostrar tablero
-            System.out.println("\n18. Mostrar Tauler:");
+            System.out.println("\n3. Mostrar Tablero:");
             System.out.println(partidaDao.mostrarTauler(idPartida));
 
-            // 19. Mostrar partida
-            System.out.println("\n19. Mostrar Partida:");
+            System.out.println("\n4. Mover ladrón:");
+            System.out.println("Pendiente de implementar.");
+
+            System.out.println("\n5. Comprar carta:");
+            System.out.println("Pendiente de implementar.");
+
+            System.out.println("\n6. Jugar carta:");
+            System.out.println("Pendiente de implementar.");
+
+            System.out.println("\n7. Tirar dados:");
+            System.out.println(partidaDao.tirarDaus(idPartida));
+
+            System.out.println("\n8. Comprobar victoria:");
+            partidaDao.comprovarVictoria(idPartida);
+
+            System.out.println("\n9. Ejército más grande:");
+            partidaDao.exercitMesGran(idPartida);
+
+            System.out.println("\n10. Mostrar tablero final:");
+            System.out.println(partidaDao.mostrarTauler(idPartida));
+
+            System.out.println("\n11. Mostrar partida final:");
             System.out.println(partidaDao.mostrarPartida(idPartida));
 
         } catch (RuntimeException e) {
@@ -140,16 +130,19 @@ public class Main {
             e.printStackTrace();
 
         } finally {
+
             SessionManager.tancar();
+
         }
     }
 
     private static List<Integer> obtenirIdsJugadors(int idPartida) {
 
-        org.hibernate.Session session =
+        Session session =
                 SessionManager.getSessionFactory().getCurrentSession();
 
         try {
+
             session.beginTransaction();
 
             List<Jugador> jugadors = session.createQuery(
