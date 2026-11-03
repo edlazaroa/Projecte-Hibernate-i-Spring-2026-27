@@ -41,4 +41,15 @@ public interface IPartida extends IGenericDao<Partida, Integer>{
 	// Cartes de desenvolupament
 	String comprarCarta(int idJugador);
 	String jugarCarta(int idJugador, int idCarta, TipusRecurs recurs);
+	
+	String tirarDaus(int idPartida);
+	/**
+	 * Comprova les condicions de victòria. Crida'l DESPRÉS del commit de l'acció
+	 * (construir, millorar...), no des de dins de la transacció de JugadorDao.
+	 */
+	void comprovarVictoria(int idPartida);
+	/** Mostra el jugador amb l'exèrcit més gran (mínim 3 cavallers i sense empat). */
+	void exercitMesGran(int idPartida);
+	String mostrarTauler(int idPartida);
+	String mostrarPartida(int idPartida);
 }
