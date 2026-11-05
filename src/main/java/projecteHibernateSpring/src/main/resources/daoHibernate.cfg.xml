@@ -6,7 +6,7 @@
 	<session-factory>
 		<property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
 		<!-- BD pròpia per no trepitjar la de la sessió de relacions -->
-		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/videojocs_dao?createDatabaseIfNotExist=true</property>
+		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/catan?createDatabaseIfNotExist=true</property>
 		<property name="hibernate.connection.username">root</property>
 		<property name="hibernate.connection.password">super3</property>
 
@@ -25,11 +25,17 @@
 		<property name="hibernate.format_sql">true</property>
 
 		<!-- Les MATEIXES entitats de la sessió de relacions: no es copia cap classe -->
-		<mapping class="relacions.Estudi"/>
-		<mapping class="relacions.Videojoc"/>
-		<mapping class="relacions.FitxaTecnica"/>
-		<mapping class="relacions.Categoria"/>
-		<mapping class="relacions.Plataforma"/>
-		<mapping class="relacions.Llancament"/>
+		<mapping class="projecteHibernateSpring.Partida"/>
+        <mapping class="projecteHibernateSpring.Jugador"/>
+        <mapping class="projecteHibernateSpring.RecursJugador"/>
+        <mapping class="projecteHibernateSpring.Vertex"/>
+        <mapping class="projecteHibernateSpring.Aresta"/>
+        <mapping class="projecteHibernateSpring.Hexagon"/>
+        <mapping class="projecteHibernateSpring.Construccio"/>
+        <mapping class="projecteHibernateSpring.Assentament"/>
+        <mapping class="projecteHibernateSpring.Poblat"/>
+        <mapping class="projecteHibernateSpring.Ciutat"/>
+        <mapping class="projecteHibernateSpring.Carretera"/>
+        <mapping class="projecteHibernateSpring.CartaDesenvolupament"/>
 	</session-factory>
 </hibernate-configuration>
