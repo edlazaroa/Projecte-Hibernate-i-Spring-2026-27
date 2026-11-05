@@ -91,22 +91,22 @@ public class Jugador {
 	@JoinColumn(name = "partida_id")
 	private Partida partida;
 	
-	@OneToMany(mappedBy="Partida")
-	private List<Partida> actius = new ArrayList<>();
-	
-	@OneToMany(mappedBy="Partida")
-	private List<Partida> guanyadors = new ArrayList<>();
+	@OneToMany(mappedBy = "actiu")
+	private List<Partida> partidesActiu = new ArrayList<>();
+
+	@OneToMany(mappedBy = "guanyadorId")
+	private List<Partida> partidesGuanyades = new ArrayList<>();
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "color", nullable = false)
 	private ColorJugador color;	
 	
-	@OneToMany(mappedBy="CartaDesenvolupament")
+	@OneToMany(mappedBy = "jugador")
 	private List<CartaDesenvolupament> mans = new ArrayList<>();
 	
-	@OneToMany(mappedBy="Construccio")
+	@OneToMany(mappedBy="jugador")
 	private List<Construccio> construccions = new ArrayList<>();
 	
-	@OneToMany(mappedBy="RecursJugador")
+	@OneToMany(mappedBy="jugador")
 	private List<RecursJugador> recursos = new ArrayList<>();
 }

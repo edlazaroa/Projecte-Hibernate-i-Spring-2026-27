@@ -19,7 +19,7 @@ public class RecursJugador {
 	
 	@Column(name = "recurs_jugador_id", nullable = false)
 	private Integer recurs_jugador_id;
-	@Column(name = "id", nullable = false)
+	@Column(name = "quantitat", nullable = false)
 	private Integer quantitat;
 	public RecursJugador() {
 

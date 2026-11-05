@@ -37,9 +37,11 @@ public class Partida {
 	private boolean dausTirats;
 	@Column(name = "lladrePendent", nullable = false)
 	private boolean lladrePendent;
-	@Column(name = "lladreId", nullable = false)
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "lladre_id")
 	private Hexagon lladreId;
-	@Column(name = "guanyadorId", nullable = false)
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "guanyador_id")
 	private Jugador guanyadorId;
 	
 	public Partida() {
@@ -142,32 +144,44 @@ public class Partida {
 		this.guanyadorId = guanyadorId;
 	}
 	
-	@OneToMany(mappedBy="Hexagon")
+	public List<Hexagon> getHexagons() {
+	    return hexagons;
+	}
+
+	public List<Jugador> getJugadors() {
+	    return jugadors;
+	}
+
+	public List<CartaDesenvolupament> getCartes() {
+	    return cartes;
+	}
+
+	public List<Vertex> getVertexs() {
+	    return vertexs;
+	}
+
+	public List<Aresta> getArestes() {
+	    return arestes;
+	}
+	
+	@OneToMany(mappedBy = "partida")
 	private List<Hexagon> hexagons = new ArrayList<>();
-	
-	@OneToMany(mappedBy="partida")
+
+	@OneToMany(mappedBy = "partida")
 	private List<Jugador> jugadors = new ArrayList<>();
-	
-	@OneToMany(mappedBy="CartaDesenvolupament")
+
+	@OneToMany(mappedBy = "partida")
 	private List<CartaDesenvolupament> cartes = new ArrayList<>();
-	
-	@OneToMany(mappedBy="Vertex")
+
+	@OneToMany(mappedBy = "partida")
 	private List<Vertex> vertexs = new ArrayList<>();
-	
-	@OneToMany(mappedBy="Aresta")
+
+	@OneToMany(mappedBy = "partida")
 	private List<Aresta> arestes = new ArrayList<>();
 	
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "giu_id")
+	@JoinColumn(name = "actiu_id")
 	private Jugador actiu;
-	
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "guanyador_id")
-	private Jugador guanyador;
-	
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "lladre_id")
-	private Hexagon lladre;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "estat", nullable = false)

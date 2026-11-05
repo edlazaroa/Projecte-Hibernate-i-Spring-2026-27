@@ -46,6 +46,30 @@ public class Aresta {
 	    return carretera;
 	}
 	
+	public Vertex getVertexA() {
+	    return vertexA;
+	}
+
+	public void setVertexA(Vertex vertexA) {
+	    this.vertexA = vertexA;
+	}
+
+	public Vertex getVertexB() {
+	    return vertexB;
+	}
+
+	public void setVertexB(Vertex vertexB) {
+	    this.vertexB = vertexB;
+	}
+	
+	public Partida getPartida() {
+	    return partida;
+	}
+
+	public void setPartida(Partida partida) {
+	    this.partida = partida;
+	}
+	
 	@ManyToOne
     @JoinColumn(name = "vertex_a_id")	    
 	private Vertex vertexA;
@@ -56,5 +80,9 @@ public class Aresta {
     
     @OneToOne(mappedBy = "aresta")
     private Carretera carretera;
+    
+    @ManyToOne
+    @JoinColumn(name = "partida_id")
+    private Partida partida;
 	
 }

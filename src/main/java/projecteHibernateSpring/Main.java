@@ -21,7 +21,6 @@ public class Main {
 
         try {
 
-            // 1. INICIAR PARTIDA
             System.out.println("--- MÉTODES PARTIDA ---\n");
             System.out.println("1. Iniciar Partida:");
 
@@ -34,7 +33,6 @@ public class Main {
 
             System.out.println("Partida creada con ID: " + idPartida);
 
-            // 2. OBTENER IDS DE LOS JUGADORES
             List<Integer> idsJugadors = obtenirIdsJugadors(idPartida);
 
             if (idsJugadors.isEmpty()) {
@@ -53,12 +51,10 @@ public class Main {
                 System.out.println("ID jugador: " + id);
             }
 
-            // IDs de prueba
             int idAresta = 1;
             int idVertex = 1;
             int idHexagon = 1;
 
-            // 3. MÉTODOS DE JUGADOR
             System.out.println("\n--- MÉTODES JUGADOR ---\n");
 
             System.out.println("1. Mostrar recursos:");
@@ -91,7 +87,6 @@ public class Main {
             System.out.println("\n8. Vértices disponibles:");
             System.out.println(jugadorDao.vertexsDisponibles(idJugador));
 
-            // 4. RESTO DE MÉTODOS DE PARTIDA
             System.out.println("\n--- MÉTODES PARTIDA ---\n");
 
             System.out.println("2. Mostrar Partida:");

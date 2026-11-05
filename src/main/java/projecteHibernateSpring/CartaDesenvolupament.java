@@ -65,6 +65,22 @@ public class CartaDesenvolupament {
 		this.rondaCompra = rondaCompra;
 	}
 	
+	public Partida getPartida() {
+	    return partida;
+	}
+
+	public void setPartida(Partida partida) {
+	    this.partida = partida;
+	}
+
+	public Jugador getJugador() {
+	    return jugador;
+	}
+
+	public void setJugador(Jugador jugador) {
+	    this.jugador = jugador;
+	}
+	
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "partida_id", nullable = false)
 	private Partida partida;

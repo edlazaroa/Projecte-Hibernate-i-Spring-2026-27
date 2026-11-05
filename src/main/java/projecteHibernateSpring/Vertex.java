@@ -52,13 +52,20 @@ public class Vertex {
 	    return assentament;
 	}
 	
+	public List<HexagonVertex> getPosicions() {
+	    return posicions;
+	}
+
+	public void setPosicions(List<HexagonVertex> posicions) {
+	    this.posicions = posicions;
+	}
+	
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "partida_id", nullable = false)
 	private Partida partida;
 	
-	@ManyToOne(fetch = FetchType.EAGER, optional = false)
-	@JoinColumn(name = "hexagon_id", nullable = false)
-	private Hexagon hexagon;
+	@OneToMany(mappedBy = "vertex")
+	private List<HexagonVertex> posicions = new ArrayList<>();
 	
 	@OneToMany(mappedBy = "vertexA")
 	private List<Aresta> arestesA = new ArrayList<>();

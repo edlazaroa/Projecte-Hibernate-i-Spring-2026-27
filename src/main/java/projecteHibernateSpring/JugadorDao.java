@@ -425,25 +425,71 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 
 	@Override
 	public String vertexsDisponibles(int idJugador) {
-		Session session = sessionFactory.getCurrentSession();
-		try {
-			session.beginTransaction();
+	    Session session = sessionFactory.getCurrentSession();
 
-			Jugador jugador = session.get(Jugador.class, idJugador);
+	    try {
+	        session.beginTransaction();
 
-			if (jugador == null) {
-				session.getTransaction().commit();
-				return "El jugador no existeix.";
-			}
+	        Jugador jugador = session.get(Jugador.class, idJugador);
 
-			List<Vertex> vertexsDisponibles = session.createQuery("select distinct v from Vertex v where not exists(select a from Assentament a where a.vertex = v) and not exists (select a2 from Assentament a2 where a2.vertex in (select v2 from Vertex v2 join v2.arestes ar2 join ar2.vertexs v2 where v2 = v)) and exists (select c from Carretera c join c.aresta ar where c.jugador.jugador_id = :idJugador and (ar.vertex1 = v or ar.vertex2 = v))",Vertex.class).setParameter("idJugador", idJugador).getResultList();
-			session.getTransaction().commit();
-			return vertexsDisponibles(idJugador);
+	        if (jugador == null) {
+	            session.getTransaction().commit();
+	            return "El jugador no existe.";
+	        }
 
-		} catch (RuntimeException e) {
-			handleException(session, e);
-			return "Error al consultar els vertexs disponibles.";
-		}
+	        if (jugador.getPartida() == null) {
+	            session.getTransaction().commit();
+	            return "El jugador no pertenece a ninguna partida.";
+	        }
+
+	        List<Vertex> availableVertices = session.createQuery(
+	            "SELECT DISTINCT v FROM Vertex v " +
+	            "WHERE v.partida.partida_id = :idPartida " +
+
+	            "AND NOT EXISTS (" +
+	            "    SELECT a FROM Assentament a " +
+	            "    WHERE a.vertex = v" +
+	            ") " +
+
+	            "AND NOT EXISTS (" +
+	            "    SELECT a FROM Aresta a, Assentament s " +
+	            "    WHERE a.vertexA = v AND s.vertex = a.vertexB" +
+	            ") " +
+
+	            "AND NOT EXISTS (" +
+	            "    SELECT a FROM Aresta a, Assentament s " +
+	            "    WHERE a.vertexB = v AND s.vertex = a.vertexA" +
+	            ") " +
+
+	            "AND EXISTS (" +
+	            "    SELECT c FROM Carretera c " +
+	            "    WHERE c.jugador.jugador_id = :idJugador " +
+	            "    AND (c.aresta.vertexA = v OR c.aresta.vertexB = v)" +
+	            ")",
+	            Vertex.class
+	        )
+	        .setParameter("idPartida", jugador.getPartida().getId())
+	        .setParameter("idJugador", idJugador)
+	        .getResultList();
+
+	        String resultado = "Vértices disponibles:\n";
+
+	        if (availableVertices.isEmpty()) {
+	            resultado += "No hay vértices disponibles.";
+	        } else {
+	            for (Vertex vertex : availableVertices) {
+	                resultado += "Vértice ID: " + vertex.getVertex_id() + "\n";
+	            }
+	        }
+
+	        session.getTransaction().commit();
+
+	        return resultado;
+
+	    } catch (RuntimeException e) {
+	        handleException(session, e);
+	        return "Error al consultar los vértices disponibles.";
+	    }
 	}
 
 

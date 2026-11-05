@@ -31,6 +31,7 @@
         <mapping class="projecteHibernateSpring.Vertex"/>
         <mapping class="projecteHibernateSpring.Aresta"/>
         <mapping class="projecteHibernateSpring.Hexagon"/>
+        <mapping class="projecteHibernateSpring.HexagonVertex"/>
         <mapping class="projecteHibernateSpring.Construccio"/>
         <mapping class="projecteHibernateSpring.Assentament"/>
         <mapping class="projecteHibernateSpring.Poblat"/>
