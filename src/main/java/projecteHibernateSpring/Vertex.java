@@ -52,6 +52,16 @@ public class Vertex {
 	    return assentament;
 	}
 	
+	// projecteHibernateSpring/Vertex.java
+
+	public Partida getPartida() {
+	    return partida;
+	}
+
+	public void setPartida(Partida partida) {
+	    this.partida = partida;
+	}
+	
 	public List<HexagonVertex> getPosicions() {
 	    return posicions;
 	}

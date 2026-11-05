@@ -1,5 +1,8 @@
 package projecteHibernateSpring;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,6 +11,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -46,7 +54,8 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			partida.setPuntsPerGuanyar(10);
 			partida.setDausTirats(false);
 			partida.setLladrePendent(false);
-			session.persist(partida);
+			partida.setUltimaTirada(0);
+			session.persist(partida); // AQUI HAY FALLO
 
 			// 2. Jugadors: ordre aleatori, color segons l'ordre, inventari a 0
 			List<String> noms = new ArrayList<>(nomsJugadors);
@@ -111,10 +120,10 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			Hexagon h = hexagons.get(i);
 			h.setTerreny(terrenys.get(i));
 			if (terrenys.get(i) == TipusTerreny.DESERT) {
-				h.setNumero(null);
-				partida.setLladreId(h); // el lladre comença al desert
+			    h.setNumero(0); // Usa 0 en lugar de null si la columna es NOT NULL
+			    partida.setLladreId(h);
 			} else {
-				h.setNumero(numeros.get(idxNumero++));
+			    h.setNumero(numeros.get(idxNumero++));
 			}
 		}
 	}
@@ -127,7 +136,122 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
 	// a la partida (session.persist de cadascun) i tornar la llista dels 19 hexàgons
 	private List<Hexagon> carregarTopologia(Session session, Partida partida) {
-		throw new UnsupportedOperationException("carregarTopologia encara no està implementat");
+	    List<Hexagon> hexagons = new ArrayList<>();
+	    Map<Integer, Hexagon> mapHexagons = new HashMap<>();
+	    Map<Integer, Vertex> mapVertices = new HashMap<>();
+
+	    try {
+	        // 1. Cargar Hexágonos (dades/hexagons.csv)
+	    	// 1. Cargar Hexágonos (dades/hexagons.csv)
+	    	try (BufferedReader br = obrirCSV("dades/hexagons.csv")) {
+	    	    String line;
+	    	    while ((line = br.readLine()) != null) {
+	    	        String trimmed = line.trim();
+	    	        // Saltar líneas vacías o cabeceras que contengan texto no numérico
+	    	        if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_hexagon") || trimmed.startsWith("hexagon_id")) {
+	    	            continue;
+	    	        }
+	    	        
+	    	        // Cambiar el separador de ';' a ','
+	    	        String[] parts = trimmed.split(",");
+	    	        int codi = Integer.parseInt(parts[0].trim());
+	    	        int q = Integer.parseInt(parts[1].trim());
+	    	        int r = Integer.parseInt(parts[2].trim());
+
+	    	        Hexagon h = new Hexagon();
+	    	        h.setCodi(codi);
+	    	        h.setQ(q);
+	    	        h.setR(r);
+	    	        h.setPartida(partida);
+	    	        
+	    	        // Valores provisionales obligatorios
+	    	        h.setTerreny(TipusTerreny.BOSC); 
+	    	        h.setNumero(0);
+
+	    	        session.persist(h);
+	    	        hexagons.add(h);
+	    	        mapHexagons.put(codi, h);
+	    	    }
+	    	}
+
+	    	// 2. Cargar Vértices (dades/vertexs.csv)
+	    	try (BufferedReader br = obrirCSV("dades/vertexs.csv")) {
+	    	    String line;
+	    	    while ((line = br.readLine()) != null) {
+	    	        String trimmed = line.trim();
+	    	        if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_vertex") || trimmed.startsWith("vertex_id")) {
+	    	            continue;
+	    	        }
+	    	        int codi = Integer.parseInt(trimmed.split(",")[0].trim());
+
+	    	        Vertex v = new Vertex();
+	    	        v.setCodi(codi);
+	    	        v.setPartida(partida);
+
+	    	        session.persist(v);
+	    	        mapVertices.put(codi, v);
+	    	    }
+	    	}
+
+	    	// 3. Cargar Aristas (dades/arestes.csv)
+	    	try (BufferedReader br = obrirCSV("dades/arestes.csv")) {
+	    	    String line;
+	    	    while ((line = br.readLine()) != null) {
+	    	        String trimmed = line.trim();
+	    	        if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_aresta") || trimmed.startsWith("aresta_id")) {
+	    	            continue;
+	    	        }
+	    	        String[] parts = trimmed.split(",");
+	    	        int codi = Integer.parseInt(parts[0].trim());
+	    	        int codiVertexA = Integer.parseInt(parts[1].trim());
+	    	        int codiVertexB = Integer.parseInt(parts[2].trim());
+
+	    	        Aresta a = new Aresta();
+	    	        a.setCodi(codi);
+	    	        a.setVertexA(mapVertices.get(codiVertexA));
+	    	        a.setVertexB(mapVertices.get(codiVertexB));
+	    	        a.setPartida(partida);
+
+	    	        session.persist(a);
+	    	    }
+	    	}
+
+	    	// 4. Cargar HexagonVertex (dades/hexagon_vertex.csv)
+	    	try (BufferedReader br = obrirCSV("dades/hexagon_vertex.csv")) {
+	    	    String line;
+	    	    while ((line = br.readLine()) != null) {
+	    	        String trimmed = line.trim();
+	    	        if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_hexagon") || trimmed.startsWith("hexagon_id")) {
+	    	            continue;
+	    	        }
+	    	        String[] parts = trimmed.split(",");
+	    	        int codiHexagon = Integer.parseInt(parts[0].trim());
+	    	        int codiVertex = Integer.parseInt(parts[1].trim());
+	    	        int posicio = Integer.parseInt(parts[2].trim());
+
+	    	        HexagonVertex hv = new HexagonVertex();
+	    	        hv.setHexagon(mapHexagons.get(codiHexagon));
+	    	        hv.setVertex(mapVertices.get(codiVertex));
+	    	        hv.setPosicio(posicio);
+
+	    	        session.persist(hv);
+	    	    }
+	    	}
+
+	    } catch (IOException e) {
+	        throw new RuntimeException("Error en carregar la topologia des dels fitxers CSV", e);
+	    }
+
+	    return hexagons;
+	}
+
+	/** Método auxiliar para abrir los CSV desde el Classpath (src/main/resources) */
+	private BufferedReader obrirCSV(String ruta) throws IOException {
+	    InputStream is = getClass().getClassLoader().getResourceAsStream(ruta);
+	    if (is == null) {
+	        throw new FileNotFoundException("No s'ha trobat el fitxer en el classpath: " + ruta);
+	    }
+	    return new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 	}
 
 	// TODO: 14 CAVALLER, 5 PUNT_VICTORIA, 2 MONOPOLI, sense propietari (només part avançada)
@@ -525,23 +649,7 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		fila.setQuantitat(fila.getQuantitat() + quantitat);
 	}
 
-	@Override
-	public String mostrarPartida() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-	@Override
-	public String mostrarTauler() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String mostrarRecursos(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public String construirCarretera(int idJugador, int idAresta) {
@@ -563,12 +671,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
 	@Override
 	public String comerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String calcularPunts(int idJugador) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -602,5 +704,62 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		// TODO Auto-generated method stub
 		return null;
 	}
+	@Override
+	public String mostrarPartida() {
+		return mostrarPartida(1);
+	}
+
+	@Override
+	public String mostrarTauler() {
+		return mostrarTauler(1);
+	}
+
+	// ========================================================================
+	// CONSULTES DE JUGADOR (Implementades mitjançant consulta Hibernate)
+	// ========================================================================
+
+	@Override
+	public String mostrarRecursos(int idJugador) {
+		Session session = sessionFactory.getCurrentSession();
+		try {
+			session.beginTransaction();
+			Jugador j = session.get(Jugador.class, idJugador);
+			if (j == null) return acabar(session, "El jugador no existeix.");
+
+			List<RecursJugador> recursos = session.createQuery(
+					"FROM RecursJugador r WHERE r.jugador = :jugador", RecursJugador.class)
+				.setParameter("jugador", j)
+				.getResultList();
+
+			StringBuilder sb = new StringBuilder("Recursos de " + j.getNom() + ":\n");
+			for (RecursJugador r : recursos) {
+				sb.append(r.getTipus()).append(": ").append(r.getQuantitat()).append("\n");
+			}
+
+			session.getTransaction().commit();
+			return sb.toString();
+		} catch (RuntimeException e) {
+			handleException(session, e);
+			return "Error en consultar els recursos.";
+		}
+	}
+
+	@Override
+	public String calcularPunts(int idJugador) {
+		Session session = sessionFactory.getCurrentSession();
+		try {
+			session.beginTransaction();
+			Jugador j = session.get(Jugador.class, idJugador);
+			if (j == null) return acabar(session, "El jugador no existeix.");
+
+			int punts = calcularPunts(session, j);
+			session.getTransaction().commit();
+			return "El jugador " + j.getNom() + " té " + punts + " punts.";
+		} catch (RuntimeException e) {
+			handleException(session, e);
+			return "Error en calcular els punts.";
+		}
+	}
+	
 
 }
