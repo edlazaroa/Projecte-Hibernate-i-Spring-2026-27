@@ -1,173 +1,233 @@
 package projecteHibernateSpring;
 
 import java.util.ArrayList;
+
 import java.util.List;
 
 import org.hibernate.Session;
 
 public class Main {
 
-    private static final int NUM_RONDES = 3;
+	private static final int NUM_RONDES = 3;
 
-    public static void main(String[] args) {
+	public static void main(String[] args) {
 
-        PartidaDao partidaDao = new PartidaDao();
-        JugadorDao jugadorDao = new JugadorDao();
+		PartidaDao partidaDao = new PartidaDao();
 
-        try {
+		JugadorDao jugadorDao = new JugadorDao();
 
-            List<String> playerNames = new ArrayList<>();
+		try {
 
-            playerNames.add("Gabriel");
-            playerNames.add("Alex");
-            playerNames.add("Dennis");
-            playerNames.add("Ismael");
+			List<String> playerNames = new ArrayList<>();
 
-            System.out.println("==================================");
-            System.out.println("       INICIANT PARTIDA CATAN");
-            System.out.println("==================================");
+			playerNames.add("Gabriel");
 
-            System.out.println("\n--- CREAR PARTIDA ---");
+			playerNames.add("Alex");
 
-            int gameId = partidaDao.iniciarPartida(playerNames);
+			playerNames.add("Dennis");
 
-            if (gameId == -1) {
-                System.out.println("No s'ha pogut iniciar la partida.");
-                return;
-            }
+			playerNames.add("Ismael");
 
-            System.out.println("Partida creada amb l'ID: " + gameId);
+			System.out.println("==================================");
 
-            List<Integer> playerIds = obtenirIdsJugadors(gameId);
+			System.out.println("       INICIANT PARTIDA CATAN");
 
-            if (playerIds.isEmpty()) {
-                System.out.println("No hi ha cap jugador registrat.");
-                return;
-            }
+			System.out.println("==================================");
 
-            System.out.println("\n--- JUGADORS ---");
+			System.out.println("\n--- CREAR PARTIDA ---");
 
-            for (int i = 0; i < playerIds.size(); i++) {
-                System.out.println(
-                    "Jugador " + (i + 1) + " - ID: " + playerIds.get(i)
-                );
-            }
+			int gameId = partidaDao.iniciarPartida(playerNames);
 
-            System.out.println("\n--- ESTAT INICIAL ---");
-            System.out.println(partidaDao.mostrarPartida(gameId));
-            System.out.println(partidaDao.mostrarTauler(gameId));
+			if (gameId == -1) {
 
-            boolean gameFinished = false;
+				System.out.println("No s'ha pogut iniciar la partida.");
 
-            for (int round = 1; round <= NUM_RONDES && !gameFinished; round++) {
+				return;
 
-                System.out.println("\n==================================");
-                System.out.println("             RONDA " + round);
-                System.out.println("==================================");
+			}
 
-                for (int i = 0; i < playerIds.size(); i++) {
+			System.out.println("Partida creada amb l'ID: " + gameId);
 
-                    int playerId = playerIds.get(i);
+			List<Integer> playerIds = obtenirIdsJugadors(gameId);
 
-                    System.out.println("\n----------------------------------");
-                    System.out.println("TORN DEL JUGADOR " + (i + 1));
-                    System.out.println("ID: " + playerId);
-                    System.out.println("----------------------------------");
+			if (playerIds.isEmpty()) {
 
-                    System.out.println("\n1. Recursos del jugador:");
-                    System.out.println(jugadorDao.mostrarRecursos(playerId));
+				System.out.println("No hi ha cap jugador registrat.");
 
-                    System.out.println("\n2. Llançar els daus:");
-                    System.out.println(partidaDao.tirarDaus(gameId));
+				return;
 
-                    System.out.println("\n3. Vèrtexs disponibles:");
-                    System.out.println(jugadorDao.vertexsDisponibles(playerId));
+			}
 
-                    System.out.println("\n4. Punts del jugador:");
-                    System.out.println(jugadorDao.calcularPunts(playerId));
+			System.out.println("\n--- JUGADORS ---");
 
-                    System.out.println("\n5. Comprovar si hi ha algun guanyador:");
-                    partidaDao.comprovarVictoria(gameId);
+			for (int i = 0; i < playerIds.size(); i++) {
 
-                    System.out.println("\n6. Passar el torn:");
-                    System.out.println(jugadorDao.passarTorn(playerId));
+				System.out.println(
 
-                    System.out.println("\nEstat actual de la partida:");
-                    System.out.println(partidaDao.mostrarPartida(gameId));
-                }
-            }
+						"Jugador " + (i + 1) + " - ID: " + playerIds.get(i)
 
-            System.out.println("\n==================================");
-            System.out.println("          FINAL DE LA PARTIDA");
-            System.out.println("==================================");
+				);
 
-            System.out.println("\n--- TAULER FINAL ---");
-            System.out.println(partidaDao.mostrarTauler(gameId));
+			}
 
-            System.out.println("\n--- ESTAT FINAL ---");
-            System.out.println(partidaDao.mostrarPartida(gameId));
+			System.out.println("\n--- ESTAT INICIAL ---");
 
-            System.out.println("\n--- EXÈRCIT MÉS GRAN ---");
-            partidaDao.exercitMesGran(gameId);
+			System.out.println(partidaDao.mostrarPartida(gameId));
 
-            System.out.println("\n--- PUNTS FINALS ---");
+			System.out.println(partidaDao.mostrarTauler(gameId));
 
-            for (int playerId : playerIds) {
-                System.out.println(
-                    "Jugador amb ID " + playerId + ": "
-                    + jugadorDao.calcularPunts(playerId)
-                );
-            }
+			boolean gameFinished = false;
 
-            System.out.println("\nSimulació finalitzada.");
+			for (int round = 1; round <= NUM_RONDES && !gameFinished; round++) {
 
-        } catch (RuntimeException e) {
+				System.out.println("\n==================================");
 
-            System.out.println("\nS'ha produït un error durant la simulació:");
-            e.printStackTrace();
+				System.out.println("             RONDA " + round);
 
-        } finally {
+				System.out.println("==================================");
 
-            SessionManager.tancar();
+				for (int i = 0; i < playerIds.size(); i++) {
 
-        }
-    }
+					int playerId = playerIds.get(i);
 
-    private static List<Integer> obtenirIdsJugadors(int gameId) {
+					System.out.println("\n----------------------------------");
 
-        Session session =
-            SessionManager.getSessionFactory().getCurrentSession();
+					System.out.println("TORN DEL JUGADOR " + (i + 1));
 
-        try {
+					System.out.println("ID: " + playerId);
 
-            session.beginTransaction();
+					System.out.println("----------------------------------");
 
-            List<Jugador> players = session.createQuery(
-                "FROM Jugador j "
-                + "WHERE j.partida.partida_id = :gameId "
-                + "ORDER BY j.ordreTorn",
-                Jugador.class
-            )
-            .setParameter("gameId", gameId)
-            .getResultList();
+					System.out.println("\n1. Recursos del jugador:");
 
-            List<Integer> playerIds = new ArrayList<>();
+					System.out.println(jugadorDao.mostrarRecursos(playerId));
 
-            for (Jugador player : players) {
-                playerIds.add(player.getId());
-            }
+					System.out.println("\n2. Llançar els daus:");
 
-            session.getTransaction().commit();
+					System.out.println(partidaDao.tirarDaus(gameId));
 
-            return playerIds;
+					System.out.println("\n3. Vèrtexs disponibles:");
 
-        } catch (RuntimeException e) {
+					System.out.println(jugadorDao.vertexsDisponibles(playerId));
 
-            if (session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
-            }
+					System.out.println("\n4. Punts del jugador:");
 
-            throw e;
-        }
-    }
+					System.out.println(jugadorDao.calcularPunts(playerId));
+
+					System.out.println("\n5. Comprovar si hi ha algun guanyador:");
+
+					partidaDao.comprovarVictoria(gameId);
+
+					System.out.println("\n6. Passar el torn:");
+
+					System.out.println(jugadorDao.passarTorn(playerId));
+
+					System.out.println("\nEstat actual de la partida:");
+
+					System.out.println(partidaDao.mostrarPartida(gameId));
+
+				}
+
+			}
+
+			System.out.println("\n==================================");
+
+			System.out.println("          FINAL DE LA PARTIDA");
+
+			System.out.println("==================================");
+
+			System.out.println("\n--- TAULER FINAL ---");
+
+			System.out.println(partidaDao.mostrarTauler(gameId));
+
+			System.out.println("\n--- ESTAT FINAL ---");
+
+			System.out.println(partidaDao.mostrarPartida(gameId));
+
+			System.out.println("\n--- EXÈRCIT MÉS GRAN ---");
+
+			partidaDao.exercitMesGran(gameId);
+
+			System.out.println("\n--- PUNTS FINALS ---");
+
+			for (int playerId : playerIds) {
+
+				System.out.println(
+
+						"Jugador amb ID " + playerId + ": "
+
+								+ jugadorDao.calcularPunts(playerId)
+
+				);
+
+			}
+
+			System.out.println("\nSimulació finalitzada.");
+
+		} catch (RuntimeException e) {
+
+			System.out.println("\nS'ha produït un error durant la simulació:");
+
+			e.printStackTrace();
+
+		} finally {
+
+			SessionManager.tancar();
+
+		}
+
+	}
+
+	private static List<Integer> obtenirIdsJugadors(int gameId) {
+
+		Session session =
+
+				SessionManager.getSessionFactory().getCurrentSession();
+
+		try {
+
+			session.beginTransaction();
+
+			List<Jugador> players = session.createQuery(
+
+					"FROM Jugador j "
+
+							+ "WHERE j.partida.partida_id = :gameId "
+
+							+ "ORDER BY j.ordreTorn",
+
+					Jugador.class
+
+			)
+
+					.setParameter("gameId", gameId)
+
+					.getResultList();
+
+			List<Integer> playerIds = new ArrayList<>();
+
+			for (Jugador player : players) {
+
+				playerIds.add(player.getId());
+
+			}
+
+			session.getTransaction().commit();
+
+			return playerIds;
+
+		} catch (RuntimeException e) {
+
+			if (session.getTransaction().isActive()) {
+
+				session.getTransaction().rollback();
+
+			}
+
+			throw e;
+
+		}
+
+	}
+
 }
