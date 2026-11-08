@@ -1,4 +1,3 @@
-
 package projecteHibernateSpring;
 
 import java.util.ArrayList;
@@ -8,120 +7,123 @@ import org.hibernate.Session;
 
 public class Main {
 
+    private static final int NUM_RONDES = 3;
+
     public static void main(String[] args) {
 
         PartidaDao partidaDao = new PartidaDao();
         JugadorDao jugadorDao = new JugadorDao();
 
-        List<String> nomsJugadors = new ArrayList<>();
-        nomsJugadors.add("Gabriel");
-        nomsJugadors.add("Alex");
-        nomsJugadors.add("Dennis");
-        nomsJugadors.add("Ismael");
-
         try {
 
-            System.out.println("--- MÉTODES PARTIDA ---\n");
-            System.out.println("1. Iniciar Partida:");
+            List<String> playerNames = new ArrayList<>();
 
-            int idPartida = partidaDao.iniciarPartida(nomsJugadors);
+            playerNames.add("Gabriel");
+            playerNames.add("Alex");
+            playerNames.add("Dennis");
+            playerNames.add("Ismael");
 
-            if (idPartida == -1) {
-                System.out.println("No se ha podido iniciar la partida.");
+            System.out.println("==================================");
+            System.out.println("       INICIANT PARTIDA CATAN");
+            System.out.println("==================================");
+
+            System.out.println("\n--- CREAR PARTIDA ---");
+
+            int gameId = partidaDao.iniciarPartida(playerNames);
+
+            if (gameId == -1) {
+                System.out.println("No s'ha pogut iniciar la partida.");
                 return;
             }
 
-            System.out.println("Partida creada con ID: " + idPartida);
+            System.out.println("Partida creada amb l'ID: " + gameId);
 
-            List<Integer> idsJugadors = obtenirIdsJugadors(idPartida);
+            List<Integer> playerIds = obtenirIdsJugadors(gameId);
 
-            if (idsJugadors.isEmpty()) {
-                System.out.println("No hay jugadores registrados.");
+            if (playerIds.isEmpty()) {
+                System.out.println("No hi ha cap jugador registrat.");
                 return;
             }
 
-            int idJugador = idsJugadors.get(0);
+            System.out.println("\n--- JUGADORS ---");
 
-            int idJugadorVictima = idsJugadors.size() > 1
-                    ? idsJugadors.get(1) : idJugador;
-
-            System.out.println("\nJugadores:");
-
-            for (Integer id : idsJugadors) {
-                System.out.println("ID jugador: " + id);
+            for (int i = 0; i < playerIds.size(); i++) {
+                System.out.println(
+                    "Jugador " + (i + 1) + " - ID: " + playerIds.get(i)
+                );
             }
 
-            int idAresta = 1;
-            int idVertex = 1;
-            int idHexagon = 1;
+            System.out.println("\n--- ESTAT INICIAL ---");
+            System.out.println(partidaDao.mostrarPartida(gameId));
+            System.out.println(partidaDao.mostrarTauler(gameId));
 
-            System.out.println("\n--- MÉTODES JUGADOR ---\n");
+            boolean gameFinished = false;
 
-            System.out.println("1. Mostrar recursos:");
-            System.out.println(jugadorDao.mostrarRecursos(idJugador));
+            for (int round = 1; round <= NUM_RONDES && !gameFinished; round++) {
 
-            System.out.println("\n2. Construir carretera:");
-            System.out.println(jugadorDao.construirCarretera(
-                    idJugador, idAresta));
+                System.out.println("\n==================================");
+                System.out.println("             RONDA " + round);
+                System.out.println("==================================");
 
-            System.out.println("\n3. Construir poblado:");
-            System.out.println(jugadorDao.construirPoblat(
-                    idJugador, idVertex));
+                for (int i = 0; i < playerIds.size(); i++) {
 
-            System.out.println("\n4. Mejorar a ciudad:");
-            System.out.println(jugadorDao.millorarACiutat(
-                    idJugador, idVertex));
+                    int playerId = playerIds.get(i);
 
-            System.out.println("\n5. Comerciar con la banca:");
-            System.out.println(jugadorDao.comerciarBanca(
-                    idJugador,
-                    TipusRecurs.FUSTA,
-                    TipusRecurs.BLAT));
+                    System.out.println("\n----------------------------------");
+                    System.out.println("TORN DEL JUGADOR " + (i + 1));
+                    System.out.println("ID: " + playerId);
+                    System.out.println("----------------------------------");
 
-            System.out.println("\n6. Calcular puntos:");
-            System.out.println(jugadorDao.calcularPunts(idJugador));
+                    System.out.println("\n1. Recursos del jugador:");
+                    System.out.println(jugadorDao.mostrarRecursos(playerId));
 
-            System.out.println("\n7. Pasar turno:");
-            System.out.println(jugadorDao.passarTorn(idJugador));
+                    System.out.println("\n2. Llançar els daus:");
+                    System.out.println(partidaDao.tirarDaus(gameId));
 
-            System.out.println("\n8. Vértices disponibles:");
-            System.out.println(jugadorDao.vertexsDisponibles(idJugador));
+                    System.out.println("\n3. Vèrtexs disponibles:");
+                    System.out.println(jugadorDao.vertexsDisponibles(playerId));
 
-            System.out.println("\n--- MÉTODES PARTIDA ---\n");
+                    System.out.println("\n4. Punts del jugador:");
+                    System.out.println(jugadorDao.calcularPunts(playerId));
 
-            System.out.println("2. Mostrar Partida:");
-            System.out.println(partidaDao.mostrarPartida(idPartida));
+                    System.out.println("\n5. Comprovar si hi ha algun guanyador:");
+                    partidaDao.comprovarVictoria(gameId);
 
-            System.out.println("\n3. Mostrar Tablero:");
-            System.out.println(partidaDao.mostrarTauler(idPartida));
+                    System.out.println("\n6. Passar el torn:");
+                    System.out.println(jugadorDao.passarTorn(playerId));
 
-            System.out.println("\n4. Mover ladrón:");
-            System.out.println("Pendiente de implementar.");
+                    System.out.println("\nEstat actual de la partida:");
+                    System.out.println(partidaDao.mostrarPartida(gameId));
+                }
+            }
 
-            System.out.println("\n5. Comprar carta:");
-            System.out.println("Pendiente de implementar.");
+            System.out.println("\n==================================");
+            System.out.println("          FINAL DE LA PARTIDA");
+            System.out.println("==================================");
 
-            System.out.println("\n6. Jugar carta:");
-            System.out.println("Pendiente de implementar.");
+            System.out.println("\n--- TAULER FINAL ---");
+            System.out.println(partidaDao.mostrarTauler(gameId));
 
-            System.out.println("\n7. Tirar dados:");
-            System.out.println(partidaDao.tirarDaus(idPartida));
+            System.out.println("\n--- ESTAT FINAL ---");
+            System.out.println(partidaDao.mostrarPartida(gameId));
 
-            System.out.println("\n8. Comprobar victoria:");
-            partidaDao.comprovarVictoria(idPartida);
+            System.out.println("\n--- EXÈRCIT MÉS GRAN ---");
+            partidaDao.exercitMesGran(gameId);
 
-            System.out.println("\n9. Ejército más grande:");
-            partidaDao.exercitMesGran(idPartida);
+            System.out.println("\n--- PUNTS FINALS ---");
 
-            System.out.println("\n10. Mostrar tablero final:");
-            System.out.println(partidaDao.mostrarTauler(idPartida));
+            for (int playerId : playerIds) {
+                System.out.println(
+                    "Jugador amb ID " + playerId + ": "
+                    + jugadorDao.calcularPunts(playerId)
+                );
+            }
 
-            System.out.println("\n11. Mostrar partida final:");
-            System.out.println(partidaDao.mostrarPartida(idPartida));
+            System.out.println("\nSimulació finalitzada.");
 
         } catch (RuntimeException e) {
 
-            System.out.println("Error durante las pruebas:");
+            System.out.println("\nS'ha produït un error durant la simulació:");
             e.printStackTrace();
 
         } finally {
@@ -131,33 +133,33 @@ public class Main {
         }
     }
 
-    private static List<Integer> obtenirIdsJugadors(int idPartida) {
+    private static List<Integer> obtenirIdsJugadors(int gameId) {
 
         Session session =
-                SessionManager.getSessionFactory().getCurrentSession();
+            SessionManager.getSessionFactory().getCurrentSession();
 
         try {
 
             session.beginTransaction();
 
-            List<Jugador> jugadors = session.createQuery(
-                    "FROM Jugador j "
-                    + "WHERE j.partida.partida_id = :idPartida "
-                    + "ORDER BY j.ordreTorn",
-                    Jugador.class
+            List<Jugador> players = session.createQuery(
+                "FROM Jugador j "
+                + "WHERE j.partida.partida_id = :gameId "
+                + "ORDER BY j.ordreTorn",
+                Jugador.class
             )
-            .setParameter("idPartida", idPartida)
+            .setParameter("gameId", gameId)
             .getResultList();
 
-            List<Integer> ids = new ArrayList<>();
+            List<Integer> playerIds = new ArrayList<>();
 
-            for (Jugador jugador : jugadors) {
-                ids.add(jugador.getId());
+            for (Jugador player : players) {
+                playerIds.add(player.getId());
             }
 
             session.getTransaction().commit();
 
-            return ids;
+            return playerIds;
 
         } catch (RuntimeException e) {
 
