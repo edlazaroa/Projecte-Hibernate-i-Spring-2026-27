@@ -7,7 +7,6 @@ import org.hibernate.Session;
 public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador {
 
 	public JugadorDao() {
-		super();
 	}
 
 	@Override
