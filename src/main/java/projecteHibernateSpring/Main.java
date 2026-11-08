@@ -13,7 +13,6 @@ public class Main {
 	public static void main(String[] args) {
 
 		PartidaDao partidaDao = new PartidaDao();
-
 		JugadorDao jugadorDao = new JugadorDao();
 
 		try {

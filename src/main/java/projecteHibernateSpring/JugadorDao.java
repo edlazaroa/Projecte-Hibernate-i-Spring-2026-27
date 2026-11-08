@@ -25,7 +25,7 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			}
 
 			List<RecursJugador> recursos = session
-					.createQuery("FROM RecursJugador r WHERE r.jugador.jugador_id = :idJugador", RecursJugador.class)
+					.createQuery("from RecursJugador r where r.jugador.jugador_id = :idJugador", RecursJugador.class)
 					.setParameter("idJugador", idJugador).getResultList();
 
 			String resultado = "Recursos de " + jugador.getNom() + ":\n";
@@ -46,8 +46,7 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 	public RecursJugador buscarRecurs(Session session, int idJugador, TipusRecurs tipus) {
 
 		return session
-				.createQuery(
-						"FROM RecursJugador r " + "WHERE r.jugador.jugador_id = :idJugador " + "AND r.tipus = :tipus",
+				.createQuery("from RecursJugador r where r.jugador.jugador_id = :idJugador and r.tipus = :tipus",
 						RecursJugador.class)
 				.setParameter("idJugador", idJugador).setParameter("tipus", tipus).uniqueResult();
 	}
@@ -102,12 +101,12 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			if (partida.getEstat() == EstatPartida.PREPARACIO) {
 
 				Long settlements = session
-						.createQuery("SELECT COUNT(p) FROM Poblat p " + "WHERE p.jugador.jugador_id = :idJugador",
+						.createQuery("select count(p) from Poblat p where p.jugador.jugador_id = :idJugador",
 								Long.class)
 						.setParameter("idJugador", idJugador).uniqueResult();
 
 				Long roads = session
-						.createQuery("SELECT COUNT(c) FROM Carretera c " + "WHERE c.jugador.jugador_id = :idJugador",
+						.createQuery("select count(c) from Carretera c where c.jugador.jugador_id = :idJugador",
 								Long.class)
 						.setParameter("idJugador", idJugador).uniqueResult();
 
@@ -116,14 +115,9 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 					return "Primero debes colocar un poblado antes de construir su carretera.";
 				}
 
-				List<Vertex> pendingVertices = session
-						.createQuery(
-								"SELECT p.vertex FROM Poblat p " + "WHERE p.jugador.jugador_id = :idJugador "
-										+ "AND NOT EXISTS (" + "SELECT c FROM Carretera c "
-										+ "WHERE c.jugador.jugador_id = :idJugador "
-										+ "AND (c.aresta.vertexA = p.vertex " + "OR c.aresta.vertexB = p.vertex))",
-								Vertex.class)
-						.setParameter("idJugador", idJugador).getResultList();
+				List<Vertex> pendingVertices = session.createQuery(
+						"select p.vertex from Poblat p where p.jugador.jugador_id = :idJugador and not exists (select c from Carretera c where c.jugador.jugador_id = :idJugador and (c.aresta.vertexA = p.vertex or c.aresta.vertexB = p.vertex))",
+						Vertex.class).setParameter("idJugador", idJugador).getResultList();
 
 				if (pendingVertices.size() != 1) {
 					session.getTransaction().commit();
@@ -150,7 +144,7 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 				}
 
 				Long roadCount = session
-						.createQuery("SELECT COUNT(c) FROM Carretera c " + "WHERE c.jugador.jugador_id = :idJugador",
+						.createQuery("select count(c) from Carretera c where c.jugador.jugador_id = :idJugador",
 								Long.class)
 						.setParameter("idJugador", idJugador).uniqueResult();
 
@@ -159,19 +153,14 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 					return "Has alcanzado el límite de 15 carreteras.";
 				}
 
-				Long connectedBuildings = session
-						.createQuery("SELECT COUNT(a) FROM Assentament a " + "WHERE a.jugador.jugador_id = :idJugador "
-								+ "AND (a.vertex = :vertexA OR a.vertex = :vertexB)", Long.class)
-						.setParameter("idJugador", idJugador).setParameter("vertexA", vertexA)
+				Long connectedBuildings = session.createQuery(
+						"select count(a) from Assentament a where a.jugador.jugador_id = :idJugador and (a.vertex = :vertexA or a.vertex = :vertexB)",
+						Long.class).setParameter("idJugador", idJugador).setParameter("vertexA", vertexA)
 						.setParameter("vertexB", vertexB).uniqueResult();
 
-				Long connectedRoads = session
-						.createQuery(
-								"SELECT COUNT(c) FROM Carretera c " + "WHERE c.jugador.jugador_id = :idJugador "
-										+ "AND (" + "(c.aresta.vertexA = :vertexA OR c.aresta.vertexB = :vertexA) "
-										+ "OR (c.aresta.vertexA = :vertexB OR c.aresta.vertexB = :vertexB)" + ")",
-								Long.class)
-						.setParameter("idJugador", idJugador).setParameter("vertexA", vertexA)
+				Long connectedRoads = session.createQuery(
+						"select count(c) from Carretera c where c.jugador.jugador_id = :idJugador and ((c.aresta.vertexA = :vertexA or c.aresta.vertexB = :vertexA) or (c.aresta.vertexA = :vertexB or c.aresta.vertexB = :vertexB))",
+						Long.class).setParameter("idJugador", idJugador).setParameter("vertexA", vertexA)
 						.setParameter("vertexB", vertexB).uniqueResult();
 
 				if (connectedBuildings == 0 && connectedRoads == 0) {
@@ -268,13 +257,12 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 				return "Este vértice ya está ocupado.";
 			}
 
-			List<Vertex> adjacentVertices = session
-					.createQuery("SELECT CASE WHEN a.vertexA = :vertex THEN a.vertexB ELSE a.vertexA END "
-							+ "FROM Aresta a " + "WHERE a.vertexA = :vertex OR a.vertexB = :vertex", Vertex.class)
-					.setParameter("vertex", vertex).getResultList();
+			List<Vertex> adjacentVertices = session.createQuery(
+					"select case when a.vertexA = :vertex then a.vertexB else a.vertexA end from Aresta a where a.vertexA = :vertex or a.vertexB = :vertex",
+					Vertex.class).setParameter("vertex", vertex).getResultList();
 
 			Long adjacentSettlements = session
-					.createQuery("SELECT COUNT(a) FROM Assentament a WHERE a.vertex IN :vertices", Long.class)
+					.createQuery("select count(a) from Assentament a where a.vertex in :vertices", Long.class)
 					.setParameter("vertices", adjacentVertices).uniqueResult();
 
 			if (adjacentSettlements > 0) {
@@ -283,13 +271,13 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			}
 
 			Long settlements = session
-					.createQuery("SELECT COUNT(p) FROM Poblat p WHERE p.jugador.jugador_id = :idJugador", Long.class)
+					.createQuery("select count(p) from Poblat p where p.jugador.jugador_id = :idJugador", Long.class)
 					.setParameter("idJugador", idJugador).uniqueResult();
 
 			if (partida.getEstat() == EstatPartida.PREPARACIO) {
 
 				Long roads = session
-						.createQuery("SELECT COUNT(c) FROM Carretera c WHERE c.jugador.jugador_id = :idJugador",
+						.createQuery("select count(c) from Carretera c where c.jugador.jugador_id = :idJugador",
 								Long.class)
 						.setParameter("idJugador", idJugador).uniqueResult();
 
@@ -310,10 +298,9 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 					return "Has alcanzado el límite de 5 poblados.";
 				}
 
-				Long connectedRoads = session
-						.createQuery("SELECT COUNT(c) FROM Carretera c " + "WHERE c.jugador.jugador_id = :idJugador "
-								+ "AND (c.aresta.vertexA = :vertex OR c.aresta.vertexB = :vertex)", Long.class)
-						.setParameter("idJugador", idJugador).setParameter("vertex", vertex).uniqueResult();
+				Long connectedRoads = session.createQuery(
+						"select count(c) from Carretera c where c.jugador.jugador_id = :idJugador and (c.aresta.vertexA = :vertex or c.aresta.vertexB = :vertex)",
+						Long.class).setParameter("idJugador", idJugador).setParameter("vertex", vertex).uniqueResult();
 
 				if (connectedRoads == 0) {
 					session.getTransaction().commit();
@@ -535,13 +522,11 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			}
 
 			Long poblados = session
-					.createQuery("SELECT COUNT(p) FROM Poblat p " + "WHERE p.jugador.jugador_id = :idJugador",
-							Long.class)
+					.createQuery("select count(p) from Poblat p where p.jugador.jugador_id = :idJugador", Long.class)
 					.setParameter("idJugador", idJugador).uniqueResult();
 
 			Long ciudades = session
-					.createQuery("SELECT COUNT(c) FROM Ciutat c " + "WHERE c.jugador.jugador_id = :idJugador",
-							Long.class)
+					.createQuery("select count(c) from Ciutat c where c.jugador.jugador_id = :idJugador", Long.class)
 					.setParameter("idJugador", idJugador).uniqueResult();
 
 			int puntos = poblados.intValue() + ciudades.intValue() * 2;
@@ -586,7 +571,7 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			}
 
 			List<Jugador> jugadors = session
-					.createQuery("FROM Jugador j WHERE j.partida.partida_id = :idPartida ORDER BY j.ordreTorn",
+					.createQuery("from Jugador j where j.partida.partida_id = :idPartida order by j.ordreTorn",
 							Jugador.class)
 					.setParameter("idPartida", partida.getId()).getResultList();
 
@@ -603,17 +588,17 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			if (partida.getEstat() == EstatPartida.PREPARACIO) {
 
 				Long totalPoblats = session
-						.createQuery("SELECT COUNT(p) FROM Poblat p WHERE p.jugador.partida.partida_id = :idPartida",
+						.createQuery("select count(p) from Poblat p where p.jugador.partida.partida_id = :idPartida",
 								Long.class)
 						.setParameter("idPartida", partida.getId()).getSingleResult();
 
 				Long poblatsJugador = session
-						.createQuery("SELECT COUNT(p) FROM Poblat p WHERE p.jugador.jugador_id = :idJugador",
+						.createQuery("select count(p) from Poblat p where p.jugador.jugador_id = :idJugador",
 								Long.class)
 						.setParameter("idJugador", idJugador).getSingleResult();
 
 				Long carreteresJugador = session
-						.createQuery("SELECT COUNT(c) FROM Carretera c WHERE c.jugador.jugador_id = :idJugador",
+						.createQuery("select count(c) from Carretera c where c.jugador.jugador_id = :idJugador",
 								Long.class)
 						.setParameter("idJugador", idJugador).getSingleResult();
 
@@ -737,20 +722,10 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 				return "La partida ha finalizado.";
 			}
 
-			String query = "SELECT DISTINCT v FROM Vertex v " + "WHERE v.partida.partida_id = :idPartida " +
-
-					"AND NOT EXISTS (" + "    SELECT a FROM Assentament a " + "    WHERE a.vertex = v" + ") " +
-
-					"AND NOT EXISTS (" + "    SELECT a FROM Aresta a, Assentament s "
-					+ "    WHERE a.vertexA = v AND s.vertex = a.vertexB" + ") " +
-
-					"AND NOT EXISTS (" + "    SELECT a FROM Aresta a, Assentament s "
-					+ "    WHERE a.vertexB = v AND s.vertex = a.vertexA" + ") ";
+			String query = "select distinct v from Vertex v where v.partida.partida_id = :idPartida and not exists (select a from Assentament a where a.vertex = v) and not exists (select a from Aresta a, Assentament s where a.vertexA = v and s.vertex = a.vertexB) and not exists (select a from Aresta a, Assentament s where a.vertexB = v and s.vertex = a.vertexA)";
 
 			if (game.getEstat() == EstatPartida.EN_CURS) {
-				query += "AND EXISTS (" + "    SELECT c FROM Carretera c "
-						+ "    WHERE c.jugador.jugador_id = :idJugador "
-						+ "    AND (c.aresta.vertexA = v OR c.aresta.vertexB = v)" + ")";
+				query += " and exists (select c from Carretera c where c.jugador.jugador_id = :idJugador and (c.aresta.vertexA = v or c.aresta.vertexB = v))";
 			}
 
 			var queryBuilder = session.createQuery(query, Vertex.class).setParameter("idPartida", game.getId());
