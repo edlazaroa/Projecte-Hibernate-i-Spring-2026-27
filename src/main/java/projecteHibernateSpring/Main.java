@@ -29,7 +29,7 @@ public class Main {
 
 			System.out.println("==================================");
 
-			System.out.println("       INICIANT PARTIDA CATAN");
+			System.out.println("     INICIANT PARTIDA CATAN");
 
 			System.out.println("==================================");
 
