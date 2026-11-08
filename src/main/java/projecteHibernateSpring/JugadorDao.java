@@ -664,6 +664,7 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 
 			}
 
+			// FASE EN_CURS
 			int posicio = -1;
 
 			for (int i = 0; i < jugadors.size(); i++) {
@@ -685,6 +686,10 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			partida.setDausTirats(false);
 			partida.setLladrePendent(false);
 
+			if (seguent == 0) {
+				partida.setRonda(partida.getRonda() + 1);
+			}
+
 			session.getTransaction().commit();
 
 			return "Turno pasado. Ahora juega " + jugadorSeguent.getNom() + ".";
@@ -694,7 +699,6 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			return "Error al pasar el turno.";
 		}
 	}
-
 	@Override
 	public String vertexsDisponibles(int idJugador) {
 		Session session = sessionFactory.getCurrentSession();

@@ -12,14 +12,6 @@ public interface IPartida extends IGenericDao<Partida, Integer>{
 	// Recursos del jugador
 	String mostrarRecursos(int idJugador);
 
-	// Construccions
-	String construirCarretera(int idJugador, int idAresta);
-	String construirPoblat(int idJugador, int idVertex);
-	String millorarACiutat(int idJugador, int idVertex);
-
-	// Comerç
-	String comerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep);
-
 	// Puntuació
 	String calcularPunts(int idJugador);
 

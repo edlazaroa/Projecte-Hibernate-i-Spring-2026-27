@@ -27,98 +27,122 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	public PartidaDao() {
 		super();
 	}
-
 	@Override
 	public int iniciarPartida(List<String> nomsJugadors) {
-		if (nomsJugadors == null || nomsJugadors.size() < 2 || nomsJugadors.size() > 4) {
-			throw new IllegalArgumentException("Hi ha d'haver entre 2 i 4 jugadors");
-		}
-		if (new HashSet<>(nomsJugadors).size() != nomsJugadors.size()) {
-			throw new IllegalArgumentException("Els noms dels jugadors no es poden repetir");
-		}
+	    if (nomsJugadors == null || nomsJugadors.size() < 2 || nomsJugadors.size() > 4) {
+	        throw new IllegalArgumentException("Hi ha d'haver entre 2 i 4 jugadors");
+	    }
+	    if (new HashSet<>(nomsJugadors).size() != nomsJugadors.size()) {
+	        throw new IllegalArgumentException("Els noms dels jugadors no es poden repetir");
+	    }
 
-		Session session = sessionFactory.getCurrentSession();
-		try {
-			session.beginTransaction();
+	    Session session = sessionFactory.getCurrentSession();
+	    try {
+	        session.beginTransaction();
+	        Partida partida = new Partida();
+	        partida.setEstat(EstatPartida.EN_CURS);
+	        partida.setDataInici(new Date(System.currentTimeMillis()));
+	        partida.setRonda(1);
+	        partida.setPuntsPerGuanyar(10);
+	        partida.setDausTirats(false);
+	        partida.setLladrePendent(false);
+	        partida.setUltimaTirada(0);
+	        session.persist(partida);
+	        List<String> noms = new ArrayList<>(nomsJugadors);
+	        Collections.shuffle(noms);
+	        Jugador primer = null;
+	        List<Jugador> jugadorsCreats = new ArrayList<>();
 
-			// 1. Partida (dataInici és java.sql.Date a la teva entitat)
-			Partida partida = new Partida();
-			partida.setEstat(EstatPartida.PREPARACIO);
-			partida.setDataInici(new Date(System.currentTimeMillis()));
-			partida.setRonda(1);
-			partida.setPuntsPerGuanyar(10);
-			partida.setDausTirats(false);
-			partida.setLladrePendent(false);
-			partida.setUltimaTirada(0);
-			session.persist(partida); // AQUI HAY FALLO
+	        for (int i = 0; i < noms.size(); i++) {
+	            Jugador j = new Jugador();
+	            j.setNom(noms.get(i));
+	            j.setOrdreTorn(i + 1);
+	            j.setColor(ColorJugador.values()[i]);
+	            j.setCavallersJugats(0);
+	            j.setPartida(partida);
+	            session.persist(j);
+	            jugadorsCreats.add(j);
 
-			// 2. Jugadors: ordre aleatori, color segons l'ordre, inventari a 0
-			List<String> noms = new ArrayList<>(nomsJugadors);
-			Collections.shuffle(noms);
-			Jugador primer = null;
-			for (int i = 0; i < noms.size(); i++) {
-				Jugador j = new Jugador();
-				j.setNom(noms.get(i));
-				j.setOrdreTorn(i + 1);
-				j.setColor(ColorJugador.values()[i]);
-				j.setCavallersJugats(0);
-				j.setPartida(partida);
-				session.persist(j);
-				if (i == 0) {
-					primer = j;
-				}
+	            if (i == 0) {
+	                primer = j;
+	            }
 
-				for (TipusRecurs tipus : TipusRecurs.values()) {
-					RecursJugador r = new RecursJugador();
-					r.setJugador(j);
-					r.setTipus(tipus);
-					r.setQuantitat(0);
-					session.persist(r);
-				}
-			}
-			// Comença el jugador d'ordreTorn 1 (sense actiu, tirarDaus i passarTorn no funcionarien)
-			partida.setActiu(primer);
+	            for (TipusRecurs tipus : TipusRecurs.values()) {
+	                RecursJugador r = new RecursJugador();
+	                r.setJugador(j);
+	                r.setTipus(tipus);
+	                r.setQuantitat(0);
+	                session.persist(r);
+	            }
+	        }
+	        
+	        partida.setActiu(primer);
 
-			// 3. Topologia des dels CSV (hexàgons, vèrtexs, arestes, hexagon_vertex)
-			List<Hexagon> hexagons = carregarTopologia(session, partida);
+	        List<Hexagon> hexagons = carregarTopologia(session, partida);
+	        assignarTerrenysINumeros(hexagons, partida);
+	        List<Vertex> totsVertexs = session.createQuery(
+	                "FROM Vertex v WHERE v.partida = :partida ORDER BY v.codi", Vertex.class)
+	            .setParameter("partida", partida)
+	            .getResultList();
 
-			// 4. Terrenys, números i lladre
-			assignarTerrenysINumeros(hexagons, partida);
+	        List<Aresta> totesArestes = session.createQuery(
+	                "FROM Aresta a WHERE a.partida = :partida ORDER BY a.codi", Aresta.class)
+	            .setParameter("partida", partida)
+	            .getResultList();
 
+	        int[] vertexIndices = {0, 9, 19, 29}; 
+	        for (int i = 0; i < jugadorsCreats.size(); i++) {
+	            Jugador jug = jugadorsCreats.get(i);
+	            Vertex v = totsVertexs.get(vertexIndices[i]);
 
-			session.getTransaction().commit();
-			return partida.getId();
-		} catch (RuntimeException e) {
-			handleException(session, e);
-			return -1;
-		}
+	            Poblat poblat = new Poblat();
+	            poblat.setJugador(jug);
+	            poblat.setVertex(v);
+	            session.persist(poblat);
+
+	            for (Aresta ar : totesArestes) {
+	                if (ar.getVertexA().equals(v) || ar.getVertexB().equals(v)) {
+	                    Carretera carretera = new Carretera();
+	                    carretera.setJugador(jug);
+	                    carretera.setAresta(ar);
+	                    session.persist(carretera);
+	                    break;
+	                }
+	            }
+	        }
+
+	        session.getTransaction().commit();
+	        return partida.getId();
+	    } catch (RuntimeException e) {
+	        handleException(session, e);
+	        return -1;
+	    }
 	}
-
 	private void assignarTerrenysINumeros(List<Hexagon> hexagons, Partida partida) {
-		List<TipusTerreny> terrenys = new ArrayList<>();
-		afegir(terrenys, TipusTerreny.BOSC, 4);
-		afegir(terrenys, TipusTerreny.PASTURES, 4);
-		afegir(terrenys, TipusTerreny.CAMPS, 4);
-		afegir(terrenys, TipusTerreny.TURONS, 3);
-		afegir(terrenys, TipusTerreny.MUNTANYES, 3);
-		afegir(terrenys, TipusTerreny.DESERT, 1);
-		Collections.shuffle(terrenys);
+	    List<TipusTerreny> terrenys = new ArrayList<>();
+	    afegir(terrenys, TipusTerreny.BOSC, 4);
+	    afegir(terrenys, TipusTerreny.PASTURES, 4);
+	    afegir(terrenys, TipusTerreny.CAMPS, 4);
+	    afegir(terrenys, TipusTerreny.TURONS, 3);
+	    afegir(terrenys, TipusTerreny.MUNTANYES, 3);
+	    afegir(terrenys, TipusTerreny.DESERT, 1);
+	    Collections.shuffle(terrenys);
 
-		List<Integer> numeros = new ArrayList<>(
-			List.of(2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12));
-		Collections.shuffle(numeros);
+	    List<Integer> numeros = new ArrayList<>(
+	        List.of(2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12));
+	    Collections.shuffle(numeros);
 
-		int idxNumero = 0;
-		for (int i = 0; i < hexagons.size(); i++) {
-			Hexagon h = hexagons.get(i);
-			h.setTerreny(terrenys.get(i));
-			if (terrenys.get(i) == TipusTerreny.DESERT) {
-			    h.setNumero(0); // Usa 0 en lugar de null si la columna es NOT NULL
-			    partida.setLladreId(h);
-			} else {
-			    h.setNumero(numeros.get(idxNumero++));
-			}
-		}
+	    int idxNumero = 0;
+	    for (int i = 0; i < hexagons.size(); i++) {
+	        Hexagon h = hexagons.get(i);
+	        h.setTerreny(terrenys.get(i));
+	        if (terrenys.get(i) == TipusTerreny.DESERT) {
+	            h.setNumero(0);
+	            partida.setLladreId(h);
+	        } else {
+	            h.setNumero(numeros.get(idxNumero++));
+	        }
+	    }
 	}
 
 	private void afegir(List<TipusTerreny> llista, TipusTerreny t, int vegades) {
@@ -126,26 +150,20 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			llista.add(t);
 		}
 	}
-
-	// a la partida (session.persist de cadascun) i tornar la llista dels 19 hexàgons
 	private List<Hexagon> carregarTopologia(Session session, Partida partida) {
 	    List<Hexagon> hexagons = new ArrayList<>();
 	    Map<Integer, Hexagon> mapHexagons = new HashMap<>();
 	    Map<Integer, Vertex> mapVertices = new HashMap<>();
 
 	    try {
-	        // 1. Cargar Hexágonos (dades/hexagons.csv)
-	    	// 1. Cargar Hexágonos (dades/hexagons.csv)
 	    	try (BufferedReader br = obrirCSV("dades/hexagons.csv")) {
 	    	    String line;
 	    	    while ((line = br.readLine()) != null) {
 	    	        String trimmed = line.trim();
-	    	        // Saltar líneas vacías o cabeceras que contengan texto no numérico
 	    	        if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_hexagon") || trimmed.startsWith("hexagon_id")) {
 	    	            continue;
 	    	        }
 	    	        
-	    	        // Cambiar el separador de ';' a ','
 	    	        String[] parts = trimmed.split(",");
 	    	        int codi = Integer.parseInt(parts[0].trim());
 	    	        int q = Integer.parseInt(parts[1].trim());
@@ -156,8 +174,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	    	        h.setQ(q);
 	    	        h.setR(r);
 	    	        h.setPartida(partida);
-	    	        
-	    	        // Valores provisionales obligatorios
 	    	        h.setTerreny(TipusTerreny.BOSC); 
 	    	        h.setNumero(0);
 
@@ -167,7 +183,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	    	    }
 	    	}
 
-	    	// 2. Cargar Vértices (dades/vertexs.csv)
 	    	try (BufferedReader br = obrirCSV("dades/vertexs.csv")) {
 	    	    String line;
 	    	    while ((line = br.readLine()) != null) {
@@ -186,7 +201,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	    	    }
 	    	}
 
-	    	// 3. Cargar Aristas (dades/arestes.csv)
 	    	try (BufferedReader br = obrirCSV("dades/arestes.csv")) {
 	    	    String line;
 	    	    while ((line = br.readLine()) != null) {
@@ -209,7 +223,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	    	    }
 	    	}
 
-	    	// 4. Cargar HexagonVertex (dades/hexagon_vertex.csv)
 	    	try (BufferedReader br = obrirCSV("dades/hexagon_vertex.csv")) {
 	    	    String line;
 	    	    while ((line = br.readLine()) != null) {
@@ -238,7 +251,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	    return hexagons;
 	}
 
-	/** Método auxiliar para abrir los CSV desde el Classpath (src/main/resources) */
 	private BufferedReader obrirCSV(String ruta) throws IOException {
 	    InputStream is = getClass().getClassLoader().getResourceAsStream(ruta);
 	    if (is == null) {
@@ -270,7 +282,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			sb.append("Última tirada: ").append(tirada != null ? tirada : "encara no hi ha tirada").append("\n");
 
 			for (Jugador j : jugadorsDeLaPartida(session, partida)) {
-				// Només el total de recursos: els tipus són secrets
 				Long totalRecursos = session.createQuery(
 						"SELECT COALESCE(SUM(r.quantitat), 0) FROM RecursJugador r WHERE r.jugador = :jugador",
 						Long.class)
@@ -522,11 +533,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			handleException(session, e);
 		}
 	}
-
-	// ========================================================================
-	// Consultes i càlculs auxiliars (tots reben la Session de la transacció oberta)
-	// ========================================================================
-
 	private List<Jugador> jugadorsDeLaPartida(Session session, Partida partida) {
 		return session.createQuery(
 				"FROM Jugador j WHERE j.partida = :partida ORDER BY j.ordreTorn", Jugador.class)
@@ -534,7 +540,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			.getResultList();
 	}
 
-	/** Poblats i ciutats (poblat o ciutat) dels vèrtexs d'un hexàgon, ordenats per vèrtex. */
 	private List<Assentament> assentamentsDelHexagon(Session session, Hexagon hexagon) {
 		return session.createQuery(
 				"SELECT a FROM Assentament a WHERE a.vertex IN "
@@ -544,21 +549,17 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			.getResultList();
 	}
 
-	/** Compta les construccions d'un jugador d'un tipus: "Poblat", "Ciutat" o "Carretera". */
 	private long comptar(Session session, String entitat, Jugador jugador) {
-		// "entitat" és sempre una constant del codi, mai un valor de l'usuari
 		return session.createQuery(
 				"SELECT COUNT(c) FROM " + entitat + " c WHERE c.jugador = :jugador", Long.class)
 			.setParameter("jugador", jugador)
 			.getSingleResult();
 	}
 
-	/** Punts: poblats 1, ciutats 2 (+ cartes PUNT_VICTORIA i exèrcit més gran a l'avançada). */
 	private int calcularPunts(Session session, Jugador jugador) {
 		int punts = (int) (comptar(session, "Poblat", jugador) + 2 * comptar(session, "Ciutat", jugador));
 
 		if (PART_AVANCADA) {
-			// Cal que CartaDesenvolupament tingui els atributs "jugador" i "tipus"
 			Long cartesPunt = session.createQuery(
 					"SELECT COUNT(c) FROM CartaDesenvolupament c "
 					+ "WHERE c.jugador = :jugador AND c.tipus = :tipus", Long.class)
@@ -575,7 +576,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		return punts;
 	}
 
-	/** Més cavallers jugats, amb un mínim de 3 i sense empat; si no, null. */
 	private Jugador jugadorExercitMesGran(Session session, Partida partida) {
 		Jugador millor = null;
 		int max = 0;
@@ -600,11 +600,10 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			case PASTURES:  return TipusRecurs.LLANA;
 			case CAMPS:     return TipusRecurs.BLAT;
 			case MUNTANYES: return TipusRecurs.MINERAL;
-			default:        return null; // DESERT no produeix
+			default:        return null;
 		}
 	}
 
-	/** Suma recursos a l'inventari (Hibernate desa el canvi en fer commit). */
 	private void afegirRecurs(Session session, Jugador jugador, TipusRecurs tipus, int quantitat) {
 		RecursJugador fila = session.createQuery(
 				"FROM RecursJugador r WHERE r.jugador = :jugador AND r.tipus = :tipus",
@@ -616,59 +615,108 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	}
 
 
-
-	@Override
-	public String construirCarretera(int idJugador, int idAresta) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String construirPoblat(int idJugador, int idVertex) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String millorarACiutat(int idJugador, int idVertex) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String comerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	@Override
 	public String passarTorn(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	    Session session = sessionFactory.getCurrentSession();
+	    try {
+	        session.beginTransaction();
 
+	        Jugador jugador = session.get(Jugador.class, idJugador);
+	        if (jugador == null) {
+	            return acabar(session, "El jugador no existeix.");
+	        }
+
+	        Partida partida = jugador.getPartida();
+	        if (partida == null || partida.getEstat() == EstatPartida.FINALITZADA) {
+	            return acabar(session, "La partida no està disponible.");
+	        }
+
+	        Jugador actiu = partida.getActiu();
+	        if (actiu == null || !actiu.getId().equals(jugador.getId())) {
+	            return acabar(session, "No és el torn d'aquest jugador.");
+	        }
+
+	        partida.setDausTirats(false);
+
+	        List<Jugador> jugadors = jugadorsDeLaPartida(session, partida);
+	        int posicioActual = jugadors.indexOf(jugador);
+	        int posicioSeguent = (posicioActual + 1) % jugadors.size();
+	        Jugador seguentJugador = jugadors.get(posicioSeguent);
+
+	        partida.setActiu(seguentJugador);
+
+	        if (posicioSeguent == 0) {
+	            partida.setRonda(partida.getRonda() + 1);
+	        }
+
+	        session.getTransaction().commit();
+	        return "Turno pasado. Ahora juega " + seguentJugador.getNom() + ".";
+
+	    } catch (RuntimeException e) {
+	        handleException(session, e);
+	        return "Error en passar el torn.";
+	    }
+	}
+	
 	@Override
 	public String vertexsDisponibles(int idJugador) {
-		// TODO Auto-generated method stub
-		return null;
+	    Session session = sessionFactory.getCurrentSession();
+	    try {
+	        session.beginTransaction();
+
+	        Jugador jugador = session.get(Jugador.class, idJugador);
+	        if (jugador == null) {
+	            return acabar(session, "El jugador no existeix.");
+	        }
+	        Partida partida = jugador.getPartida();
+
+	        List<Vertex> disponibles;
+	        if (partida.getEstat() == EstatPartida.PREPARACIO) {
+	            disponibles = session.createQuery(
+	                "SELECT v FROM Vertex v WHERE v.partida = :partida " +
+	                "AND NOT EXISTS (SELECT a FROM Assentament a WHERE a.vertex = v) " +
+	                "AND NOT EXISTS (" +
+	                "  SELECT a2 FROM Assentament a2, Aresta ar " +
+	                "  WHERE (ar.vertexA = v AND a2.vertex = ar.vertexB) " +
+	                "     OR (ar.vertexB = v AND a2.vertex = ar.vertexA)" +
+	                ")", Vertex.class)
+	                .setParameter("partida", partida)
+	                .getResultList();
+	        } else {
+	            disponibles = session.createQuery(
+	                "SELECT DISTINCT v FROM Vertex v WHERE v.partida = :partida " +
+	                "AND NOT EXISTS (SELECT a FROM Assentament a WHERE a.vertex = v) " +
+	                "AND NOT EXISTS (" +
+	                "  SELECT a2 FROM Assentament a2, Aresta ar " +
+	                "  WHERE (ar.vertexA = v AND a2.vertex = ar.vertexB) " +
+	                "     OR (ar.vertexB = v AND a2.vertex = ar.vertexA)" +
+	                ") " +
+	                "AND EXISTS (" +
+	                "  SELECT c FROM Carretera c WHERE c.jugador = :jugador " +
+	                "  AND (c.aresta.vertexA = v OR c.aresta.vertexB = v)" +
+	                ")", Vertex.class)
+	                .setParameter("partida", partida)
+	                .setParameter("jugador", jugador)
+	                .getResultList();
+	        }
+
+	        StringBuilder sb = new StringBuilder("Vértices disponibles:\n");
+	        if (disponibles.isEmpty()) {
+	            sb.append("No hay vértices disponibles.");
+	        } else {
+	            for (Vertex v : disponibles) {
+	                sb.append("Vértice ID: ").append(v.getVertex_id()).append("\n");
+	            }
+	        }
+
+	        session.getTransaction().commit();
+	        return sb.toString();
+
+	    } catch (RuntimeException e) {
+	        handleException(session, e);
+	        return "Error en consultar els vèrtexs disponibles.";
+	    }
 	}
-
-	// ============================================================================
-	// PART AVANÇADA: mètodes que falten. No és una classe: cada bloc va dins de
-	// la classe que s'indica.
-	//
-	// Suposa que CartaDesenvolupament té (segons l'UML): tipus (TipusCarta),
-	// usada (boolean), rondaCompra (Integer), partida (la pila) i jugador
-	// (el propietari, null mentre és a la pila), amb els seus getters i setters:
-	//   getTipus/setTipus, isUsada/setUsada, getRondaCompra/setRondaCompra,
-	//   getJugador/setJugador, setPartida
-	// Si l'atribut del propietari no es diu "jugador", canvia-ho a les consultes.
-	// ============================================================================
-
-
-	// ============================================================================
-	// BLOC A — dins de PartidaDao (substitueix el crearPilaCartes buit)
-	// ============================================================================
 
 	private void crearPilaCartes(Session session, Partida partida) {
 		crearCartes(session, partida, TipusCarta.CAVALLER, 14);
@@ -681,33 +729,15 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			CartaDesenvolupament carta = new CartaDesenvolupament();
 			carta.setTipus(tipus);
 			carta.setUsada(false);
-			carta.setPartida(partida); // a la pila: pertany a la partida i no té propietari
+			carta.setPartida(partida);
 			session.persist(carta);
 		}
 	}
 
-	// Quan els tinguis, posa PART_AVANCADA = true a PartidaDao.
-
-
-	// ============================================================================
-	// BLOC B — dins de JugadorDao (substitueixen moureLladre, comprarCarta i jugarCarta)
-	//
-	// Imports necessaris: java.util.ArrayList, java.util.List,
-//	                     java.util.concurrent.ThreadLocalRandom, org.hibernate.Session
-	// Reutilitzen el buscarRecurs(Session, int idJugador, TipusRecurs) que ja tens.
-	// Si ja tens un mètode acabar(Session, String), no el tornis a posar.
-	// ============================================================================
-
-	/** Tanca la transacció sense més canvis i torna el missatge. */
 	private String acabar(Session session, String missatge) {
 		session.getTransaction().commit();
 		return missatge;
 	}
-
-	/**
-	 * Fila de l'inventari d'un jugador per a un tipus de recurs.
-	 * (Còpia del buscarRecurs de JugadorDao: aquí és privada perquè PartidaDao no depèn de JugadorDao.)
-	 */
 	private RecursJugador buscarRecurs(Session session, int idJugador, TipusRecurs tipus) {
 		return session.createQuery(
 				"FROM RecursJugador r "
@@ -719,12 +749,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			.uniqueResult();
 	}
 
-	/**
-	 * Torna null si el jugador pot actuar ara, o el motiu pel qual no.
-	 *
-	 * @param exigirDausIsenseLladre true per a comprar/jugar cartes (cal haver tirat els
-	 *        daus i no tenir el lladre pendent); false per a moureLladre
-	 */
 	private String motiuNoPotActuar(Jugador jugador, boolean exigirDausIsenseLladre) {
 		Partida partida = jugador.getPartida();
 		if (partida == null) return "El jugador no pertenece a ninguna partida.";
@@ -741,16 +765,11 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		return null;
 	}
 
-	/** Les cartes es compren i es juguen després del commit: ara es comprova la victòria. */
 	private void comprovarVictoriaDespres(int idPartida) {
 		if (idPartida > 0) {
 			new PartidaDao().comprovarVictoria(idPartida);
 		}
 	}
-
-	// ----------------------------------------------------------------------------
-	// moureLladre
-	// ----------------------------------------------------------------------------
 
 	@Override
 	public String moureLladre(int idJugador, int idHexagon, Integer idJugadorVictima) {
@@ -785,7 +804,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 				return acabar(session, "El ladrón ya está en este hexágono: debes moverlo a otro.");
 			}
 
-			// Víctimes possibles: altres jugadors amb un assentament a l'hexàgon i amb recursos
 			List<Jugador> candidats = victimesPossibles(session, jugador, hexagon);
 			Jugador victima = null;
 			if (candidats.isEmpty()) {
@@ -805,8 +823,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 					return acabar(session, "La víctima no es válida: debe ser otro jugador con una construcción en ese hexágono y con recursos.");
 				}
 			}
-
-			// Totes les validacions fetes: a partir d'aquí ja es modifica
 			partida.setLladreId(hexagon);
 			partida.setLladrePendent(false);
 
@@ -828,7 +844,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		}
 	}
 
-	/** Altres jugadors amb un poblat o ciutat en algun vèrtex de l'hexàgon i almenys 1 recurs. */
 	private List<Jugador> victimesPossibles(Session session, Jugador actor, Hexagon hexagon) {
 		return session.createQuery(
 				"SELECT DISTINCT a.jugador FROM Assentament a "
@@ -841,14 +856,13 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			.getResultList();
 	}
 
-	/** Una fila de recurs triada a l'atzar entre TOTES les unitats que té el jugador. */
 	private RecursJugador recursAleatori(Session session, Jugador jugador) {
 		List<RecursJugador> files = session.createQuery(
 				"FROM RecursJugador r WHERE r.jugador = :jugador AND r.quantitat > 0", RecursJugador.class)
 			.setParameter("jugador", jugador)
 			.getResultList();
 
-		List<RecursJugador> bossa = new ArrayList<>(); // una entrada per cada unitat
+		List<RecursJugador> bossa = new ArrayList<>();
 		for (RecursJugador fila : files) {
 			for (int i = 0; i < fila.getQuantitat(); i++) {
 				bossa.add(fila);
@@ -856,10 +870,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		}
 		return bossa.get(ThreadLocalRandom.current().nextInt(bossa.size()));
 	}
-
-	// ----------------------------------------------------------------------------
-	// comprarCarta
-	// ----------------------------------------------------------------------------
 
 	@Override
 	public String comprarCarta(int idJugador) {
@@ -888,8 +898,7 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 					|| mineral == null || mineral.getQuantitat() < 1) {
 				return acabar(session, "No tienes recursos para comprar una carta (1 trigo, 1 lana y 1 mineral).");
 			}
-
-			// La pila: cartes de la partida sense propietari
+			
 			List<CartaDesenvolupament> pila = session.createQuery(
 					"FROM CartaDesenvolupament c WHERE c.partida = :partida AND c.jugador IS NULL",
 					CartaDesenvolupament.class)
@@ -899,7 +908,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 				return acabar(session, "La pila de cartas está vacía.");
 			}
 
-			// Carta aleatòria de la pila: passa a la mà del jugador i es guarda la ronda de compra
 			CartaDesenvolupament carta = pila.get(ThreadLocalRandom.current().nextInt(pila.size()));
 			blat.setQuantitat(blat.getQuantitat() - 1);
 			llana.setQuantitat(llana.getQuantitat() - 1);
@@ -916,14 +924,9 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			return "Error al comprar la carta.";
 		}
 
-		// Una carta PUNT_VICTORIA pot donar la victòria
 		comprovarVictoriaDespres(idPartida);
 		return "Has comprado una carta de desarrollo: " + tipus + ".";
 	}
-
-	// ----------------------------------------------------------------------------
-	// jugarCarta
-	// ----------------------------------------------------------------------------
 
 	@Override
 	public String jugarCarta(int idJugador, int idCarta, TipusRecurs recurs) {
@@ -954,7 +957,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			if (carta.isUsada()) {
 				return acabar(session, "Esta carta ya se ha jugado.");
 			}
-			// No es pot jugar a la ronda en què s'ha comprat: rondaCompra ha de ser menor que la ronda actual
 			if (carta.getRondaCompra() == null || carta.getRondaCompra() >= partida.getRonda()) {
 				return acabar(session, "No puedes jugar una carta en la misma ronda en la que la compraste.");
 			}
@@ -965,9 +967,7 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 				return acabar(session, "Debes indicar el tipo de recurso para el monopolio.");
 			}
 
-			// Validacions acabades: a partir d'aquí ja es modifica
 			if (carta.getTipus() == TipusCarta.CAVALLER) {
-				// Suma un cavaller jugat i deixa el lladre pendent (després es crida moureLladre, sense descart)
 				jugador.setCavallersJugats(jugador.getCavallersJugats() + 1);
 				partida.setLladrePendent(true);
 				missatge = "Has jugado un caballero. Ahora debes mover el ladrón.";
@@ -985,12 +985,10 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			return "Error al jugar la carta.";
 		}
 
-		// Un caballero pot donar l'exèrcit més gran (2 punts)
 		comprovarVictoriaDespres(idPartida);
 		return missatge;
 	}
 
-	/** Tots els altres jugadors de la partida donen al jugador tots els recursos d'aquest tipus. */
 	private int aplicarMonopoli(Session session, Jugador jugador, TipusRecurs recurs) {
 		List<Jugador> altres = session.createQuery(
 				"FROM Jugador j WHERE j.partida = :partida AND j <> :jugador", Jugador.class)
@@ -1013,36 +1011,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	}
 
 
-	// ============================================================================
-	// BLOC C — @NamedQuery (el enunciat en demana almenys dues)
-	//
-	// 1) A l'entitat Jugador, sobre la classe (import jakarta.persistence.NamedQuery):
-	//
-//	    @NamedQuery(name = "Jugador.perPartida",
-//	        query = "FROM Jugador j WHERE j.partida = :partida ORDER BY j.ordreTorn")
-	//
-	// 2) A l'entitat Assentament, sobre la classe:
-	//
-//	    @NamedQuery(name = "Assentament.perHexagon",
-//	        query = "SELECT a FROM Assentament a WHERE a.vertex IN "
-//	              + "(SELECT hv.vertex FROM HexagonVertex hv WHERE hv.hexagon = :hexagon) "
-//	              + "ORDER BY a.vertex.codi")
-	//
-	// 3) A PartidaDao, substitueix el cos d'aquests dos mètodes:
-	//
-//	    private List<Jugador> jugadorsDeLaPartida(Session session, Partida partida) {
-//	        return session.createNamedQuery("Jugador.perPartida", Jugador.class)
-//	            .setParameter("partida", partida)
-//	            .getResultList();
-//	    }
-	//
-//	    private List<Assentament> assentamentsDelHexagon(Session session, Hexagon hexagon) {
-//	        return session.createNamedQuery("Assentament.perHexagon", Assentament.class)
-//	            .setParameter("hexagon", hexagon)
-//	            .getResultList();
-//	    }
-	// ============================================================================
-
 	@Override
 	public String mostrarPartida() {
 		return mostrarPartida(1);
@@ -1052,10 +1020,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	public String mostrarTauler() {
 		return mostrarTauler(1);
 	}
-
-	// ========================================================================
-	// CONSULTES DE JUGADOR (Implementades mitjançant consulta Hibernate)
-	// ========================================================================
 
 	@Override
 	public String mostrarRecursos(int idJugador) {
