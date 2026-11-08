@@ -80,15 +80,15 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
 			List<Hexagon> hexagons = carregarTopologia(session, partida);
 			assignarTerrenysINumeros(hexagons, partida);
-			List<Vertex> totsVertexs = session.createQuery("from Vertex v where v.partida = :partida order by v.codi", Vertex.class)
-					.setParameter("partida", partida)
-					.getResultList();
+			List<Vertex> totsVertexs = session
+					.createQuery("from Vertex v where v.partida = :partida order by v.codi", Vertex.class)
+					.setParameter("partida", partida).getResultList();
 
-			List<Aresta> totesArestes = session.createQuery("from Aresta a where a.partida = :partida order by a.codi", Aresta.class)
-					.setParameter("partida", partida)
-					.getResultList();
+			List<Aresta> totesArestes = session
+					.createQuery("from Aresta a where a.partida = :partida order by a.codi", Aresta.class)
+					.setParameter("partida", partida).getResultList();
 
-			int[] vertexIndices = {0, 9, 19, 29};
+			int[] vertexIndices = { 0, 9, 19, 29 };
 			for (int i = 0; i < jugadorsCreats.size(); i++) {
 				Jugador jug = jugadorsCreats.get(i);
 				Vertex v = totsVertexs.get(vertexIndices[i]);
@@ -127,8 +127,7 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		afegir(terrenys, TipusTerreny.DESERT, 1);
 		Collections.shuffle(terrenys);
 
-		List<Integer> numeros = new ArrayList<>(
-				List.of(2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12));
+		List<Integer> numeros = new ArrayList<>(List.of(2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12));
 		Collections.shuffle(numeros);
 
 		int idxNumero = 0;
@@ -160,7 +159,8 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 				String line;
 				while ((line = br.readLine()) != null) {
 					String trimmed = line.trim();
-					if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_hexagon") || trimmed.startsWith("hexagon_id")) {
+					if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_hexagon")
+							|| trimmed.startsWith("hexagon_id")) {
 						continue;
 					}
 
@@ -187,7 +187,8 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 				String line;
 				while ((line = br.readLine()) != null) {
 					String trimmed = line.trim();
-					if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_vertex") || trimmed.startsWith("vertex_id")) {
+					if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_vertex")
+							|| trimmed.startsWith("vertex_id")) {
 						continue;
 					}
 					int codi = Integer.parseInt(trimmed.split(",")[0].trim());
@@ -205,7 +206,8 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 				String line;
 				while ((line = br.readLine()) != null) {
 					String trimmed = line.trim();
-					if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_aresta") || trimmed.startsWith("aresta_id")) {
+					if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_aresta")
+							|| trimmed.startsWith("aresta_id")) {
 						continue;
 					}
 					String[] parts = trimmed.split(",");
@@ -227,7 +229,8 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 				String line;
 				while ((line = br.readLine()) != null) {
 					String trimmed = line.trim();
-					if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_hexagon") || trimmed.startsWith("hexagon_id")) {
+					if (trimmed.isEmpty() || trimmed.startsWith("codi") || trimmed.startsWith("id_hexagon")
+							|| trimmed.startsWith("hexagon_id")) {
 						continue;
 					}
 					String[] parts = trimmed.split(",");
@@ -281,9 +284,9 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			sb.append("Última tirada: ").append(tirada != null ? tirada : "encara no hi ha tirada").append("\n");
 
 			for (Jugador j : jugadorsDeLaPartida(session, partida)) {
-				Long totalRecursos = session.createQuery("select coalesce(sum(r.quantitat), 0) from RecursJugador r where r.jugador = :jugador", Long.class)
-					.setParameter("jugador", j)
-					.getSingleResult();
+				Long totalRecursos = session.createQuery(
+						"select coalesce(sum(r.quantitat), 0) from RecursJugador r where r.jugador = :jugador",
+						Long.class).setParameter("jugador", j).getSingleResult();
 
 				sb.append("\n").append(j.getNom()).append(" (").append(j.getColor()).append(")\n");
 				sb.append("  Punts de victòria: ").append(calcularPunts(session, j)).append("\n");
@@ -314,9 +317,9 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
 			Integer idLladre = (partida.getLladreId() != null) ? partida.getLladreId().getHexagon_id() : null;
 
-			List<Hexagon> hexagons = session.createQuery("from Hexagon h where h.partida = :partida order by h.codi", Hexagon.class)
-				.setParameter("partida", partida)
-				.getResultList();
+			List<Hexagon> hexagons = session
+					.createQuery("from Hexagon h where h.partida = :partida order by h.codi", Hexagon.class)
+					.setParameter("partida", partida).getResultList();
 
 			StringBuilder sb = new StringBuilder();
 			for (Hexagon h : hexagons) {
@@ -332,10 +335,9 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 				}
 				for (Assentament a : assentaments) {
 					String tipus = (Hibernate.unproxy(a) instanceof Ciutat) ? "Ciutat" : "Poblat";
-					sb.append("   ").append(tipus)
-					  .append(" al vèrtex ").append(a.getVertex().getCodi())
-					  .append(" de ").append(a.getJugador().getNom())
-					  .append(" (").append(a.getJugador().getColor()).append(")\n");
+					sb.append("   ").append(tipus).append(" al vèrtex ").append(a.getVertex().getCodi()).append(" de ")
+							.append(a.getJugador().getNom()).append(" (").append(a.getJugador().getColor())
+							.append(")\n");
 				}
 			}
 
@@ -384,11 +386,16 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	}
 
 	private String validarTirada(Partida partida) {
-		if (partida == null) return "La partida no existeix";
-		if (partida.getEstat() == EstatPartida.FINALITZADA) return "La partida ja ha finalitzat";
-		if (partida.getEstat() != EstatPartida.EN_CURS) return "La partida no està en curs";
-		if (partida.getActiu() == null) return "La partida no té jugador actiu";
-		if (partida.isDausTirats()) return "El jugador actiu ja ha tirat els daus aquest torn";
+		if (partida == null)
+			return "La partida no existeix";
+		if (partida.getEstat() == EstatPartida.FINALITZADA)
+			return "La partida ja ha finalitzat";
+		if (partida.getEstat() != EstatPartida.EN_CURS)
+			return "La partida no està en curs";
+		if (partida.getActiu() == null)
+			return "La partida no té jugador actiu";
+		if (partida.isDausTirats())
+			return "El jugador actiu ja ha tirat els daus aquest torn";
 		return null;
 	}
 
@@ -401,15 +408,15 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	private void produir(Session session, Partida partida, int tirada, Map<Integer, Map<TipusRecurs, Integer>> rebuts) {
 		int idLladre = (partida.getLladreId() != null) ? partida.getLladreId().getHexagon_id() : -1;
 
-		List<Hexagon> hexagons = session.createQuery("from Hexagon h where h.partida = :partida and h.numero = :numero and h.hexagon_id <> :idLladre", Hexagon.class)
-			.setParameter("partida", partida)
-			.setParameter("numero", tirada)
-			.setParameter("idLladre", idLladre)
-			.getResultList();
+		List<Hexagon> hexagons = session.createQuery(
+				"from Hexagon h where h.partida = :partida and h.numero = :numero and h.hexagon_id <> :idLladre",
+				Hexagon.class).setParameter("partida", partida).setParameter("numero", tirada)
+				.setParameter("idLladre", idLladre).getResultList();
 
 		for (Hexagon h : hexagons) {
 			TipusRecurs recurs = recursDeTerreny(h.getTerreny());
-			if (recurs == null) continue;
+			if (recurs == null)
+				continue;
 
 			for (Assentament a : assentamentsDelHexagon(session, h)) {
 				int quantitat = (Hibernate.unproxy(a) instanceof Ciutat) ? 2 : 1;
@@ -422,9 +429,9 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
 	private void aplicarDescart(Session session, List<Jugador> jugadors, Map<Integer, Integer> descartats) {
 		for (Jugador j : jugadors) {
-			List<RecursJugador> files = session.createQuery("from RecursJugador r where r.jugador = :jugador", RecursJugador.class)
-				.setParameter("jugador", j)
-				.getResultList();
+			List<RecursJugador> files = session
+					.createQuery("from RecursJugador r where r.jugador = :jugador", RecursJugador.class)
+					.setParameter("jugador", j).getResultList();
 
 			int total = 0;
 			List<RecursJugador> bossa = new ArrayList<>();
@@ -446,7 +453,8 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		}
 	}
 
-	private String construirResum(int tirada, List<Jugador> jugadors, Map<Integer, Map<TipusRecurs, Integer>> rebuts, Map<Integer, Integer> descartats) {
+	private String construirResum(int tirada, List<Jugador> jugadors, Map<Integer, Map<TipusRecurs, Integer>> rebuts,
+			Map<Integer, Integer> descartats) {
 		StringBuilder sb = new StringBuilder("Tirada de daus: " + tirada + "\n");
 
 		if (tirada == 7) {
@@ -526,30 +534,28 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
 	private List<Jugador> jugadorsDeLaPartida(Session session, Partida partida) {
 		return session.createQuery("from Jugador j where j.partida = :partida order by j.ordreTorn", Jugador.class)
-			.setParameter("partida", partida)
-			.getResultList();
+				.setParameter("partida", partida).getResultList();
 	}
 
 	private List<Assentament> assentamentsDelHexagon(Session session, Hexagon hexagon) {
-		return session.createQuery("select a from Assentament a where a.vertex in (select hv.vertex from HexagonVertex hv where hv.hexagon = :hexagon) order by a.vertex.codi", Assentament.class)
-			.setParameter("hexagon", hexagon)
-			.getResultList();
+		return session.createQuery(
+				"select a from Assentament a where a.vertex in (select hv.vertex from HexagonVertex hv where hv.hexagon = :hexagon) order by a.vertex.codi",
+				Assentament.class).setParameter("hexagon", hexagon).getResultList();
 	}
 
 	private long comptar(Session session, String entitat, Jugador jugador) {
 		return session.createQuery("select count(c) from " + entitat + " c where c.jugador = :jugador", Long.class)
-			.setParameter("jugador", jugador)
-			.getSingleResult();
+				.setParameter("jugador", jugador).getSingleResult();
 	}
 
 	private int calcularPunts(Session session, Jugador jugador) {
 		int punts = (int) (comptar(session, "Poblat", jugador) + 2 * comptar(session, "Ciutat", jugador));
 
 		if (PART_AVANCADA) {
-			Long cartesPunt = session.createQuery("select count(c) from CartaDesenvolupament c where c.jugador = :jugador and c.tipus = :tipus", Long.class)
-				.setParameter("jugador", jugador)
-				.setParameter("tipus", TipusCarta.PUNT_VICTORIA)
-				.getSingleResult();
+			Long cartesPunt = session.createQuery(
+					"select count(c) from CartaDesenvolupament c where c.jugador = :jugador and c.tipus = :tipus",
+					Long.class).setParameter("jugador", jugador).setParameter("tipus", TipusCarta.PUNT_VICTORIA)
+					.getSingleResult();
 			punts += cartesPunt.intValue();
 
 			Jugador exercit = jugadorExercitMesGran(session, jugador.getPartida());
@@ -579,20 +585,26 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
 	private TipusRecurs recursDeTerreny(TipusTerreny terreny) {
 		switch (terreny) {
-			case BOSC:      return TipusRecurs.FUSTA;
-			case TURONS:    return TipusRecurs.MAO;
-			case PASTURES:  return TipusRecurs.LLANA;
-			case CAMPS:     return TipusRecurs.BLAT;
-			case MUNTANYES: return TipusRecurs.MINERAL;
-			default:        return null;
+		case BOSC:
+			return TipusRecurs.FUSTA;
+		case TURONS:
+			return TipusRecurs.MAO;
+		case PASTURES:
+			return TipusRecurs.LLANA;
+		case CAMPS:
+			return TipusRecurs.BLAT;
+		case MUNTANYES:
+			return TipusRecurs.MINERAL;
+		default:
+			return null;
 		}
 	}
 
 	private void afegirRecurs(Session session, Jugador jugador, TipusRecurs tipus, int quantitat) {
-		RecursJugador fila = session.createQuery("from RecursJugador r where r.jugador = :jugador and r.tipus = :tipus", RecursJugador.class)
-			.setParameter("jugador", jugador)
-			.setParameter("tipus", tipus)
-			.getSingleResult();
+		RecursJugador fila = session
+				.createQuery("from RecursJugador r where r.jugador = :jugador and r.tipus = :tipus",
+						RecursJugador.class)
+				.setParameter("jugador", jugador).setParameter("tipus", tipus).getSingleResult();
 		fila.setQuantitat(fila.getQuantitat() + quantitat);
 	}
 
@@ -653,14 +665,13 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
 			List<Vertex> disponibles;
 			if (partida.getEstat() == EstatPartida.PREPARACIO) {
-				disponibles = session.createQuery("select v from Vertex v where v.partida = :partida and not exists (select a from Assentament a where a.vertex = v) and not exists (select a2 from Assentament a2, Aresta ar where (ar.vertexA = v and a2.vertex = ar.vertexB) or (ar.vertexB = v and a2.vertex = ar.vertexA))", Vertex.class)
-					.setParameter("partida", partida)
-					.getResultList();
+				disponibles = session.createQuery(
+						"select v from Vertex v where v.partida = :partida and not exists (select a from Assentament a where a.vertex = v) and not exists (select a2 from Assentament a2, Aresta ar where (ar.vertexA = v and a2.vertex = ar.vertexB) or (ar.vertexB = v and a2.vertex = ar.vertexA))",
+						Vertex.class).setParameter("partida", partida).getResultList();
 			} else {
-				disponibles = session.createQuery("select distinct v from Vertex v where v.partida = :partida and not exists (select a from Assentament a where a.vertex = v) and not exists (select a2 from Assentament a2, Aresta ar where (ar.vertexA = v and a2.vertex = ar.vertexB) or (ar.vertexB = v and a2.vertex = ar.vertexA)) and exists (select c from Carretera c where c.jugador = :jugador and (c.aresta.vertexA = v or c.aresta.vertexB = v))", Vertex.class)
-					.setParameter("partida", partida)
-					.setParameter("jugador", jugador)
-					.getResultList();
+				disponibles = session.createQuery(
+						"select distinct v from Vertex v where v.partida = :partida and not exists (select a from Assentament a where a.vertex = v) and not exists (select a2 from Assentament a2, Aresta ar where (ar.vertexA = v and a2.vertex = ar.vertexB) or (ar.vertexB = v and a2.vertex = ar.vertexA)) and exists (select c from Carretera c where c.jugador = :jugador and (c.aresta.vertexA = v or c.aresta.vertexB = v))",
+						Vertex.class).setParameter("partida", partida).setParameter("jugador", jugador).getResultList();
 			}
 
 			StringBuilder sb = new StringBuilder("Vértices disponibles:\n");
@@ -703,24 +714,30 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	}
 
 	private RecursJugador buscarRecurs(Session session, int idJugador, TipusRecurs tipus) {
-		return session.createQuery("from RecursJugador r where r.jugador.jugador_id = :idJugador and r.tipus = :tipus", RecursJugador.class)
-			.setParameter("idJugador", idJugador)
-			.setParameter("tipus", tipus)
-			.uniqueResult();
+		return session
+				.createQuery("from RecursJugador r where r.jugador.jugador_id = :idJugador and r.tipus = :tipus",
+						RecursJugador.class)
+				.setParameter("idJugador", idJugador).setParameter("tipus", tipus).uniqueResult();
 	}
 
 	private String motiuNoPotActuar(Jugador jugador, boolean exigirDausIsenseLladre) {
 		Partida partida = jugador.getPartida();
-		if (partida == null) return "El jugador no pertenece a ninguna partida.";
-		if (partida.getEstat() == EstatPartida.FINALITZADA) return "La partida ya ha finalizado.";
-		if (partida.getEstat() != EstatPartida.EN_CURS) return "La partida no está en curso.";
+		if (partida == null)
+			return "El jugador no pertenece a ninguna partida.";
+		if (partida.getEstat() == EstatPartida.FINALITZADA)
+			return "La partida ya ha finalizado.";
+		if (partida.getEstat() != EstatPartida.EN_CURS)
+			return "La partida no está en curso.";
 
 		Jugador actiu = partida.getActiu();
-		if (actiu == null || !actiu.getId().equals(jugador.getId())) return "No es el turno de este jugador.";
+		if (actiu == null || !actiu.getId().equals(jugador.getId()))
+			return "No es el turno de este jugador.";
 
 		if (exigirDausIsenseLladre) {
-			if (!partida.isDausTirats()) return "Primero debes tirar los dados.";
-			if (partida.isLladrePendent()) return "Debes mover el ladrón antes de hacer ninguna acción.";
+			if (!partida.isDausTirats())
+				return "Primero debes tirar los dados.";
+			if (partida.isLladrePendent())
+				return "Debes mover el ladrón antes de hacer ninguna acción.";
 		}
 		return null;
 	}
@@ -768,11 +785,13 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			Jugador victima = null;
 			if (candidats.isEmpty()) {
 				if (idJugadorVictima != null) {
-					return acabar(session, "No hay ninguna víctima válida en este hexágono: idJugadorVictima debe ser null.");
+					return acabar(session,
+							"No hay ninguna víctima válida en este hexágono: idJugadorVictima debe ser null.");
 				}
 			} else {
 				if (idJugadorVictima == null) {
-					return acabar(session, "Debes elegir una víctima entre los jugadores con construcciones en este hexágono.");
+					return acabar(session,
+							"Debes elegir una víctima entre los jugadores con construcciones en este hexágono.");
 				}
 				for (Jugador candidat : candidats) {
 					if (candidat.getId().equals(idJugadorVictima)) {
@@ -780,7 +799,8 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 					}
 				}
 				if (victima == null) {
-					return acabar(session, "La víctima no es válida: debe ser otro jugador con una construcción en ese hexágono y con recursos.");
+					return acabar(session,
+							"La víctima no es válida: debe ser otro jugador con una construcción en ese hexágono y con recursos.");
 				}
 			}
 			partida.setLladreId(hexagon);
@@ -805,16 +825,15 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	}
 
 	private List<Jugador> victimesPossibles(Session session, Jugador actor, Hexagon hexagon) {
-		return session.createQuery("select distinct a.jugador from Assentament a where a.vertex in (select hv.vertex from HexagonVertex hv where hv.hexagon = :hexagon) and a.jugador <> :actor and exists (select r from RecursJugador r where r.jugador = a.jugador and r.quantitat > 0)", Jugador.class)
-			.setParameter("hexagon", hexagon)
-			.setParameter("actor", actor)
-			.getResultList();
+		return session.createQuery(
+				"select distinct a.jugador from Assentament a where a.vertex in (select hv.vertex from HexagonVertex hv where hv.hexagon = :hexagon) and a.jugador <> :actor and exists (select r from RecursJugador r where r.jugador = a.jugador and r.quantitat > 0)",
+				Jugador.class).setParameter("hexagon", hexagon).setParameter("actor", actor).getResultList();
 	}
 
 	private RecursJugador recursAleatori(Session session, Jugador jugador) {
-		List<RecursJugador> files = session.createQuery("from RecursJugador r where r.jugador = :jugador and r.quantitat > 0", RecursJugador.class)
-			.setParameter("jugador", jugador)
-			.getResultList();
+		List<RecursJugador> files = session
+				.createQuery("from RecursJugador r where r.jugador = :jugador and r.quantitat > 0", RecursJugador.class)
+				.setParameter("jugador", jugador).getResultList();
 
 		List<RecursJugador> bossa = new ArrayList<>();
 		for (RecursJugador fila : files) {
@@ -847,15 +866,15 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 			RecursJugador blat = buscarRecurs(session, idJugador, TipusRecurs.BLAT);
 			RecursJugador llana = buscarRecurs(session, idJugador, TipusRecurs.LLANA);
 			RecursJugador mineral = buscarRecurs(session, idJugador, TipusRecurs.MINERAL);
-			if (blat == null || blat.getQuantitat() < 1
-					|| llana == null || llana.getQuantitat() < 1
-					|| mineral == null || mineral.getQuantitat() < 1) {
+			if (blat == null || blat.getQuantitat() < 1 || llana == null || llana.getQuantitat() < 1 || mineral == null
+					|| mineral.getQuantitat() < 1) {
 				return acabar(session, "No tienes recursos para comprar una carta (1 trigo, 1 lana y 1 mineral).");
 			}
 
-			List<CartaDesenvolupament> pila = session.createQuery("from CartaDesenvolupament c where c.partida = :partida and c.jugador is null", CartaDesenvolupament.class)
-				.setParameter("partida", partida)
-				.getResultList();
+			List<CartaDesenvolupament> pila = session
+					.createQuery("from CartaDesenvolupament c where c.partida = :partida and c.jugador is null",
+							CartaDesenvolupament.class)
+					.setParameter("partida", partida).getResultList();
 			if (pila.isEmpty()) {
 				return acabar(session, "La pila de cartas está vacía.");
 			}
@@ -942,10 +961,9 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 	}
 
 	private int aplicarMonopoli(Session session, Jugador jugador, TipusRecurs recurs) {
-		List<Jugador> altres = session.createQuery("from Jugador j where j.partida = :partida and j <> :jugador", Jugador.class)
-			.setParameter("partida", jugador.getPartida())
-			.setParameter("jugador", jugador)
-			.getResultList();
+		List<Jugador> altres = session
+				.createQuery("from Jugador j where j.partida = :partida and j <> :jugador", Jugador.class)
+				.setParameter("partida", jugador.getPartida()).setParameter("jugador", jugador).getResultList();
 
 		int total = 0;
 		for (Jugador altre : altres) {
@@ -960,7 +978,6 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		meu.setQuantitat(meu.getQuantitat() + total);
 		return total;
 	}
-
 
 	@Override
 	public String mostrarPartida() {
@@ -978,11 +995,12 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		try {
 			session.beginTransaction();
 			Jugador j = session.get(Jugador.class, idJugador);
-			if (j == null) return acabar(session, "El jugador no existeix.");
+			if (j == null)
+				return acabar(session, "El jugador no existeix.");
 
-			List<RecursJugador> recursos = session.createQuery("from RecursJugador r where r.jugador = :jugador", RecursJugador.class)
-				.setParameter("jugador", j)
-				.getResultList();
+			List<RecursJugador> recursos = session
+					.createQuery("from RecursJugador r where r.jugador = :jugador", RecursJugador.class)
+					.setParameter("jugador", j).getResultList();
 
 			StringBuilder sb = new StringBuilder("Recursos de " + j.getNom() + ":\n");
 			for (RecursJugador r : recursos) {
@@ -1003,7 +1021,8 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 		try {
 			session.beginTransaction();
 			Jugador j = session.get(Jugador.class, idJugador);
-			if (j == null) return acabar(session, "El jugador no existeix.");
+			if (j == null)
+				return acabar(session, "El jugador no existeix.");
 
 			int punts = calcularPunts(session, j);
 			session.getTransaction().commit();

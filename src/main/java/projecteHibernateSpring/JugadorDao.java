@@ -699,6 +699,7 @@ public class JugadorDao extends GenericDao<Jugador, Integer> implements IJugador
 			return "Error al pasar el turno.";
 		}
 	}
+
 	@Override
 	public String vertexsDisponibles(int idJugador) {
 		Session session = sessionFactory.getCurrentSession();
